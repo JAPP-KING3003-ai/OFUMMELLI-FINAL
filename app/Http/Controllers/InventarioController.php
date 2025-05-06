@@ -4,68 +4,94 @@ namespace App\Http\Controllers;
 
 use App\Models\Inventario;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class InventarioController extends Controller
 {
     /**
      * Mostrar listado de inventarios.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $inventarios = Inventario::with('producto')->get(); // Relacionar el producto
+        $query = Inventario::with('producto');
+
+        // Aplicar búsqueda
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->whereHas('producto', function ($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                  ->orWhere('codigo', 'like', "%{$search}%");
+            });
+        }
+
+        $inventarios = $query->paginate(10); // Paginación
 
         return view('inventarios.index', compact('inventarios'));
     }
 
-    public function entrada($id)
+    /**
+     * Exportar datos de inventarios a Excel.
+     */
+    public function exportarExcel()
 {
-    $inventario = \App\Models\Inventario::findOrFail($id);
-    return view('inventarios.entrada', compact('inventario'));
-}
+    $inventarios = Inventario::with('producto')->get();
 
-public function storeEntrada(Request $request, $id)
-{
-    $inventario = \App\Models\Inventario::findOrFail($id);
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
 
-    $request->validate([
-        'cantidad' => 'required|integer|min:1',
-    ]);
+    // Encabezados con estilo
+    $encabezados = ['Código', 'Nombre del Producto', 'Cantidad Inicial', 'Cantidad Actual', 'Precio Costo'];
+    $col = 'A';
 
-    $inventario->cantidad_actual += $request->cantidad;
-    $inventario->save();
-
-    return redirect()->route('inventarios.index')->with('success', '¡Entrada registrada correctamente!');
-}
-
-public function entradaGlobal()
-{
-    $productos = \App\Models\Producto::orderBy('nombre')->get();
-    return view('inventarios.entrada-global', compact('productos'));
-}
-
-public function storeEntradaGlobal(Request $request)
-{
-    $request->validate([
-        'producto_id' => 'required|exists:productos,id',
-        'cantidad' => 'required|integer|min:1',
-    ]);
-
-    $inventario = Inventario::where('producto_id', $request->producto_id)->first();
-
-    if ($inventario) {
-        // Si existe el inventario del producto, actualizamos su cantidad
-        $inventario->cantidad_actual += $request->cantidad;
-        $inventario->save();
-    } else {
-        // Si no existe, creamos un nuevo registro de inventario
-        Inventario::create([
-            'producto_id' => $request->producto_id,
-            'cantidad_inicial' => $request->cantidad,
-            'cantidad_actual' => $request->cantidad,
-            'precio_costo' => 0, // Se puede actualizar luego si quieres
+    // Aplicar estilos a los encabezados
+    foreach ($encabezados as $titulo) {
+        $sheet->setCellValue("{$col}1", $titulo);
+        $sheet->getStyle("{$col}1")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '00B050'], // Verde
+            ],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
+        $col++;
     }
 
-    return redirect()->route('inventarios.index')->with('success', '¡Entrada global registrada exitosamente!');
+    // Datos de inventario
+    $fila = 2;
+    foreach ($inventarios as $inventario) {
+        $sheet->setCellValue("A{$fila}", $inventario->producto->codigo);
+        $sheet->setCellValue("B{$fila}", $inventario->producto->nombre);
+        $sheet->setCellValue("C{$fila}", $inventario->cantidad_inicial);
+        $sheet->setCellValue("D{$fila}", $inventario->cantidad_actual);
+        $sheet->setCellValue("E{$fila}", number_format($inventario->precio_costo, 2));
+        $fila++;
+    }
+
+    // Aplicar bordes a toda la tabla
+    $sheet->getStyle("A1:E{$fila}")->applyFromArray([
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => '000000'],
+            ],
+        ],
+    ]);
+
+    // Autoajustar columnas
+    foreach (range('A', 'E') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    // Descargar archivo
+    $writer = new Xlsx($spreadsheet);
+    $fileName = 'inventarios_' . now()->format('Y-m-d') . '.xlsx';
+    $tempFile = tempnam(sys_get_temp_dir(), $fileName);
+    $writer->save($tempFile);
+
+    return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
 }
 }

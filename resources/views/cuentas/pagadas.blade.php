@@ -42,7 +42,10 @@
                                     <td class="px-4 py-2 font-bold text-green-400">${{ number_format($cuenta->total_estimado, 2) }}</td>
                                     <td class="px-4 py-2">{{ $cuenta->fecha_apertura->format('d/m/Y h:i A') }}</td>
                                     <td class="px-4 py-2">
-                                        <a href="{{ route('cuentas.show', $cuenta) }}" class="text-blue-500 hover:underline">Ver</a>
+                                    <a href="{{ route('cuentas.show', $cuenta) }}"
+                                           class="inline-block px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm">
+                                            Detalles de Cuenta
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach

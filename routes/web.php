@@ -19,6 +19,8 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas');
+
 // Agrupadas bajo autenticación
 Route::middleware('auth')->group(function () {
 
@@ -33,6 +35,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventarios/entrada/{id}', [InventarioController::class, 'entrada'])->name('inventarios.entrada');
     Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEntrada'])->name('inventarios.storeEntrada');
     Route::get('/inventarios', [InventarioController::class, 'index'])->name('inventarios.index');
+    Route::get('/inventarios/{id}/edit', [InventarioController::class, 'edit'])->name('inventarios.edit');
+    Route::put('/inventarios/{id}', [InventarioController::class, 'update'])->name('inventarios.update');
+    Route::get('/inventarios', [InventarioController::class, 'index'])->name('inventarios.index');
+    Route::get('/inventarios/exportar', [InventarioController::class, 'exportarExcel'])->name('inventarios.exportar');
 
     // Movimientos
     Route::get('/movimientos', [MovimientoController::class, 'index'])->name('movimientos.index');

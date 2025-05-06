@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">
-            {{ __('Crear Nuevo Producto') }}
+            {{ __('Crear Nuevo Producto para el Menú') }}
         </h2>
     </x-slot>
 
@@ -23,7 +23,16 @@
 
                     <div class="mb-4">
                         <label class="block text-gray-800 dark:text-gray-200">Unidad de Medida:</label>
-                        <input type="text" name="unidad_medida" class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white" required>
+                        <select name="unidad_medida" class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white" required>
+                            <option value="botella">--Seleccionar--</option>
+                            <option value="botella">Botella</option>
+                            <option value="litro">Litro</option>
+                            <option value="kilogramo">Kilogramo</option>
+                            <option value="unidad">Unidad</option>
+                            <option value="combo">Combo</option>
+                            <option value="promocion">Promoción</option>
+                            <option value="otro">Otro...</option>
+                        </select>
                     </div>
 
                     <div class="mb-4">

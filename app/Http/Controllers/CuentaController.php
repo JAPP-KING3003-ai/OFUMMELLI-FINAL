@@ -18,20 +18,21 @@ use Illuminate\Support\Facades\Response;
 class CuentaController extends Controller
 {
     public function index(Request $request)
-{
-    $search = $request->get('search');
-
-    // Consulta para obtener las cuentas con búsqueda opcional
-    $cuentas = Cuenta::when($search, function ($query, $search) {
-            $query->where('cliente_nombre', 'like', "%$search%")
-                  ->orWhere('responsable_pedido', 'like', "%$search%")
-                  ->orWhere('estacion', 'like', "%$search%");
-        })
-        ->orderBy('updated_at', 'desc') // Ordenar por la fecha de actualización más reciente
-        ->paginate(10); // Asegúrate de usar paginación
-
-    return view('cuentas.index', compact('cuentas'));
-}
+    {
+        $search = $request->get('search');
+    
+        // Consulta para obtener solo las cuentas NO pagadas con búsqueda opcional
+        $cuentas = Cuenta::where('pagada', false) // Solo cuentas no pagadas
+            ->when($search, function ($query, $search) {
+                $query->where('cliente_nombre', 'like', "%$search%")
+                      ->orWhere('responsable_pedido', 'like', "%$search%")
+                      ->orWhere('estacion', 'like', "%$search%");
+            })
+            ->orderBy('updated_at', 'desc') // Ordenar por la fecha de actualización más reciente
+            ->paginate(10); // Asegúrate de usar paginación
+    
+        return view('cuentas.index', compact('cuentas'));
+    }
 
 
     public function create()
@@ -311,11 +312,9 @@ $cuentas = Cuenta::query()
 
     }
 
-    public function exportarCuentasPagadas()
+public function exportarCuentasPagadas()
 {
     $cuentasPagadas = Cuenta::where('pagada', true)->get();
-    // luego:
-    $cuentas = Cuenta::where('pagada', true)->get();
     $productos_db = Producto::all()->keyBy('id'); // Cache de productos
 
     $spreadsheet = new Spreadsheet();
@@ -339,7 +338,7 @@ $cuentas = Cuenta::query()
     $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
 
     $fila = 2;
-    foreach ($cuentas as $cuenta) {
+    foreach ($cuentasPagadas as $cuenta) {
         $sheet->setCellValue("A{$fila}", $cuenta->id);
         $sheet->setCellValue("B{$fila}", $cuenta->cliente_nombre ?? 'Desconocido');
         $sheet->setCellValue("C{$fila}", $cuenta->responsable_pedido);
@@ -352,28 +351,29 @@ $cuentas = Cuenta::query()
         $metodos_pago_str = '';
         if ($metodos_pago) {
             foreach ($metodos_pago as $metodo) {
-                $monto = $metodo['monto'];
                 $nombre_metodo = strtolower($metodo['metodo']);
+                $monto = $metodo['monto'];
+                $referencia = $metodo['referencia'] ?? null;
+                $simbolo = '';
+
                 if (str_contains($nombre_metodo, 'divisa')) {
                     $simbolo = '$';
-                } elseif (
-                    str_contains($nombre_metodo, 'bolivar') ||
-                    str_contains($nombre_metodo, 'pago') ||
-                    str_contains($nombre_metodo, 'tarjeta')
-                ) {
+                } elseif (str_contains($nombre_metodo, 'bolivar') || str_contains($nombre_metodo, 'pago') || str_contains($nombre_metodo, 'tarjeta')) {
                     $simbolo = 'Bs';
                 } elseif (str_contains($nombre_metodo, 'euro')) {
                     $simbolo = '€';
-                } else {
-                    $simbolo = '';
                 }
-                $metodos_pago_str .= "{$metodo['metodo']} ({$simbolo}{$monto}), ";
+
+                $metodos_pago_str .= "{$metodo['metodo']} {$simbolo}{$monto}";
+                if ($referencia) {
+                    $metodos_pago_str .= " ref:{$referencia}";
+                }
+                $metodos_pago_str .= "\n"; // Añadir salto de línea entre métodos
             }
-            $metodos_pago_str = rtrim($metodos_pago_str, ', ');
         } else {
             $metodos_pago_str = 'No especificado';
         }
-        $sheet->setCellValue("G{$fila}", $metodos_pago_str);
+        $sheet->setCellValue("G{$fila}", trim($metodos_pago_str));
 
         // Detalle del pedido
         $productos = json_decode($cuenta->productos, true);
@@ -384,7 +384,7 @@ $cuentas = Cuenta::query()
                 $nombre = $producto ? $producto->nombre : "ID: {$p['producto_id']}";
                 $precio = number_format($p['precio'], 2, '.', '');
                 $subtotal = number_format($p['subtotal'], 2, '.', '');
-                $detalle_pedido .= "Producto: {$nombre}\nCantidad: {$p['cantidad']}\nPrecio: \${$precio}\nSubtotal: \${$subtotal}\n\n";
+                $detalle_pedido .= "Cantidad: {$p['cantidad']} /// {$nombre} /// Precio Unitario: \${$precio} /// SUBTOTAL: \${$subtotal}\n\n";
             }
         } else {
             $detalle_pedido = 'No especificado';

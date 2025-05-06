@@ -9,10 +9,14 @@
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
 
-                <!-- BOTÓN NUEVA ENTRADA -->
-                <div class="flex justify-end mb-4">
-                    <a href="{{ route('inventarios.entrada.global') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                        + Nueva Entrada
+                <!-- BARRA DE BÚSQUEDA Y BOTÓN EXPORTAR -->
+                <div class="flex justify-between items-center mb-4">
+                    <form method="GET" action="{{ route('inventarios.index') }}" class="flex space-x-2">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por nombre o código..." class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buscar</button>
+                    </form>
+                    <a href="{{ route('inventarios.exportar') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        Exportar a Excel
                     </a>
                 </div>
 
@@ -43,8 +47,8 @@
                                             Entrada
                                         </a>
 
-                                        <!-- BOTÓN EDITAR (Pronto lo programamos) -->
-                                        <a href="#" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                                        <!-- BOTÓN EDITAR -->
+                                        <a href="{{ route('inventarios.edit', $inventario->id) }}" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
                                             Editar
                                         </a>
                                     </td>
@@ -58,6 +62,11 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <div class="mt-4">
+                    {{ $inventarios->links() }}
                 </div>
 
             </div>
