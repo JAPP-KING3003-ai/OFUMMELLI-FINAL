@@ -81,7 +81,7 @@
                     @endforeach
                 </ul>
 
-            <!-- Botón de regreso -->
+                                <!-- Botón de regreso -->
                 <div class="mt-6 flex justify-end gap-4">
                     <a href="{{ route('cuentas.index') }}"
                     class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition-all duration-200">
@@ -92,7 +92,7 @@
                         <form method="POST" action="{{ route('cuentas.marcarPagada', $cuenta) }}" class="inline-block">
                             @csrf
                             <button type="submit"
-                                    class="bg-green-600 text-white px-6 py-2  shadow hover:bg-green-700 transition-all duration-200"
+                                    class="bg-green-600 text-white px-6 py-2 rounded-lg shadow hover:bg-green-700 transition-all duration-200"
                                     onclick="return confirm('¿Marcar esta cuenta como pagada?')">
                                 Marcar como Pagada
                             </button>
