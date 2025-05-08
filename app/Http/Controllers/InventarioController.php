@@ -94,4 +94,88 @@ class InventarioController extends Controller
 
     return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
 }
+
+/**
+ * Mostrar formulario para registrar entrada de inventario.
+ *
+ * @param int $id
+ * @return \Illuminate\View\View
+ */
+public function entrada($id)
+{
+    // Buscar el inventario por su ID
+    $inventario = Inventario::with('producto')->findOrFail($id);
+
+    // Retornar una vista con el inventario encontrado
+    return view('inventarios.entrada', compact('inventario'));
+}
+
+/**
+ * Registrar la entrada de inventario.
+ *
+ * @param \Illuminate\Http\Request $request
+ * @param int $id
+ * @return \Illuminate\Http\RedirectResponse
+ */
+public function storeEntrada(Request $request, $id)
+{
+    // Validar los datos del formulario
+    $request->validate([
+        'cantidad' => 'required|integer|min:1',
+    ]);
+
+    // Buscar el inventario por su ID
+    $inventario = Inventario::findOrFail($id);
+
+    // Actualizar la cantidad actual
+    $inventario->cantidad_actual += $request->input('cantidad');
+    $inventario->save();
+
+    // Redirigir con un mensaje de éxito
+    return redirect()->route('inventarios.index')->with('success', 'Entrada registrada con éxito.');
+}
+
+/**
+ * Mostrar formulario para editar un inventario.
+ *
+ * @param int $id
+ * @return \Illuminate\View\View
+ */
+public function edit($id)
+{
+    // Buscar el inventario por su ID
+    $inventario = Inventario::with('producto')->findOrFail($id);
+
+    // Retornar una vista con el inventario encontrado
+    return view('inventarios.edit', compact('inventario'));
+}
+
+/**
+ * Actualizar los datos de un inventario.
+ *
+ * @param \Illuminate\Http\Request $request
+ * @param int $id
+ * @return \Illuminate\Http\RedirectResponse
+ */
+public function update(Request $request, $id)
+{
+    // Validar los datos del formulario
+    $request->validate([
+        'cantidad_inicial' => 'required|integer|min:0',
+        'cantidad_actual' => 'required|integer|min:0',
+        'precio_costo' => 'required|numeric|min:0',
+    ]);
+
+    // Buscar el inventario por su ID
+    $inventario = Inventario::findOrFail($id);
+
+    // Actualizar los datos del inventario
+    $inventario->cantidad_inicial = $request->input('cantidad_inicial');
+    $inventario->cantidad_actual = $request->input('cantidad_actual');
+    $inventario->precio_costo = $request->input('precio_costo');
+    $inventario->save();
+
+    // Redirigir con un mensaje de éxito
+    return redirect()->route('inventarios.index')->with('success', 'Inventario actualizado con éxito.');
+}
 }
