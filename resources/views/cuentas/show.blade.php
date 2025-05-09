@@ -7,18 +7,18 @@
 
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div style="color: white;" class="bg-white dark:bg-gray-800 p-6 rounded shadow">
+            <div style="color: white;" class="bg-white dark:bg-gray-800 p-6 rounded shadow ">
 
                 <!-- Información General -->
-                <p class="mb-2"><strong>Responsable:</strong> {{ $cuenta->responsable_pedido ?? 'No especificado' }}</p>
+                <p class="mb-2 text-light-text dark:text-dark-text"><strong>Responsable:</strong> {{ $cuenta->responsable_pedido ?? 'No especificado' }}</p>
 
-                <p class="mb-2">
+                <p class="mb-2 text-light-text dark:text-dark-text">
                     <strong>Cliente:</strong>
                     {{ $cuenta->cliente_nombre ?? 'No especificado' }}
                 </p>
 
-                <p class="mb-2"><strong>Estación:</strong> {{ $cuenta->estacion }}</p>
-                <p class="mb-4"><strong>Fecha:</strong> {{ $cuenta->fecha_apertura->format('d/m/Y h:i A') }}</p>
+                <p class="mb-2 text-light-text dark:text-dark-text"><strong>Estación:</strong> {{ $cuenta->estacion }}</p>
+                <p class="mb-4 text-light-text dark:text-dark-text"><strong>Fecha:</strong> {{ $cuenta->fecha_apertura->format('d/m/Y h:i A') }}</p>
 
                 <!-- Productos -->
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Pedido:</h3>
@@ -37,10 +37,10 @@
                             $producto = $productos[$item['producto_id']] ?? null;
                         @endphp
                         <tr>
-                            <td class="border px-4 py-2">{{ $producto->nombre ?? 'Desconocido' }}</td>
-                            <td class="border px-4 py-2">{{ $item['cantidad'] }}</td>
-                            <td class="border px-4 py-2">${{ number_format($item['precio'] ?? 0, 2) }}</td>
-                            <td class="border px-4 py-2">${{ number_format($item['subtotal'] ?? 0, 2) }}</td>
+                            <td class="text-light-text dark:text-dark-text border px-4 py-2">{{ $producto->nombre ?? 'Desconocido' }}</td>
+                            <td class="text-light-text dark:text-dark-text border px-4 py-2">{{ $item['cantidad'] }}</td>
+                            <td class="text-light-text dark:text-dark-text border px-4 py-2">${{ number_format($item['precio'] ?? 0, 2) }}</td>
+                            <td class="text-light-text dark:text-dark-text border px-4 py-2">${{ number_format($item['subtotal'] ?? 0, 2) }}</td>
                         </tr>
                     @endforeach
                     </tbody>
@@ -52,7 +52,7 @@
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Métodos de Pago:</h3>
                 <ul class="list-disc pl-6">
                     @foreach ($cuenta->metodos_pago as $pago)
-                        <li class="mb-1 text-white">
+                        <li class="mb-1 text-light-text dark:text-dark-text">
                         @php
                             $nombreMetodo = match($pago['metodo']) {
                                 'divisas' => 'Divisas ($)',
@@ -75,7 +75,7 @@
                         <strong>{{ $nombreMetodo }}:</strong>
                             {{ $simbolo }}{{ number_format($pago['monto'], 2) }}
                             @if (!empty($pago['referencia']))
-                                <span class="ml-2 text-sm text-gray-300">(Ref: {{ $pago['referencia'] }})</span>
+                                <span class="ml-2 text-sm text-gray-500">(Ref: {{ $pago['referencia'] }})</span>
                             @endif
                         </li>
                     @endforeach

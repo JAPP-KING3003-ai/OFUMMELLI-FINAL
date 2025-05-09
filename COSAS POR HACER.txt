@@ -1,0 +1,55 @@
+Gracias por tu paciencia. Aquí tienes una lista de archivos relevantes en tu repositorio que deberías compartir conmigo para que pueda corregir y ajustar el tema claro en todas tus vistas. Estos archivos incluyen tanto las vistas Blade como los archivos de configuración y scripts relacionados con la funcionalidad gráfica.
+
+---
+
+### *Archivos Blade para Compartir*
+Los siguientes archivos de vistas Blade son los más relevantes y necesitan ajustes para el tema claro:
+
+1. *Vistas generales:*
+   - resources/views/welcome.blade.php (NO SIRVIO, MUY LARGO) 
+   - resources/views/dashboard.blade.php ✅
+
+2. *Vistas de autenticación:*
+   - resources/views/auth/login.blade.php ✅
+   - resources/views/auth/register.blade.php✅
+
+3. *Vistas relacionadas con cuentas:*
+   - resources/views/cuentas/show.blade.php
+   - resources/views/cuentas/create.blade.php
+
+4. *Vistas relacionadas con inventarios:*
+   - resources/views/inventarios/index.blade.php
+   - resources/views/inventarios/entrada.blade.php
+
+5. *Componentes personalizados:*
+   - resources/views/components/nav-link.blade.php
+   - resources/views/components/input-error.blade.php
+
+---
+
+### *Archivos de Configuración y Scripts*
+Estos archivos son esenciales para la correcta integración de estilos y funcionalidad:
+
+1. *Archivos de configuración:*
+   - tailwind.config.js
+   - vite.config.js
+   - postcss.config.js
+
+2. *Archivos JavaScript:*
+   - resources/js/app.js
+   - resources/js/bootstrap.js
+
+3. *Archivo CSS principal:*
+   - resources/css/app.css
+
+---
+
+### *Próximos pasos*
+1. *Comparte los archivos mencionados:*
+   - Puedes enviarme el contenido de estos archivos directamente, y yo los corregiré para asegurarnos de que el tema claro se vea igual de bien que el oscuro.
+
+2. *Ajuste de colores y funcionalidad:*
+   - Revisaré cada archivo para asegurarme de que los colores y estilos se adapten correctamente en el tema claro.
+   - También ajustaré cualquier funcionalidad JavaScript/CSS si es necesario.
+
+¿Te gustaría comenzar con todos estos archivos, o prefieres enviarme los más prioritarios primero? 😊

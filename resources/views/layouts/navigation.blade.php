@@ -66,6 +66,19 @@
                                 {{ __('Cerrar sesión') }}
                             </x-dropdown-link>
                         </form>
+                        <!-- Botón para cambiar de modo
+                        <button id="toggle-dark-mode" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            Cambiar Modo
+                        </button> -->
+
+                    <!-- Botón de Cambio de Tema con Indicador de Estado -->
+                    <div class="theme-switch-container">
+                        <label class="theme-switch-minimal">
+                            <input type="checkbox" class="theme-switch-minimal__checkbox" id="theme-switch">
+                            <div class="theme-switch-minimal__icon"></div>
+                        </label>
+                        <span id="theme-indicator" class="theme-indicator">Modo Claro</span>
+                    </div>                        
                     </x-slot>
                 </x-dropdown>
             </div>
@@ -110,4 +123,136 @@
             </x-responsive-nav-link>
         </div>
     </div>
+
+<!-- ESTILOS PARA EL BOTON DE CAMBIO DE TEMA -->
+
+<style>
+/* Contenedor del Botón e Indicador */
+.theme-switch-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+}
+
+/* Diseño del Botón con Formas de Sol y Luna */
+.theme-switch-minimal {
+    position: relative;
+    display: inline-block;
+    width: 37px;
+    height: 60px;
+    cursor: pointer;
+}
+
+.theme-switch-minimal__checkbox {
+  display: none;
+}
+
+.theme-switch-minimal__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  transition: all 0.3s ease;
+}
+
+/* Sol con rayos */
+.theme-switch-minimal__icon::before,
+.theme-switch-minimal__icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.theme-switch-minimal__icon::before {
+  background-color: #FFD700; /* Sol amarillo */
+  width: 30px;
+  height: 30px;
+  box-shadow: 0 0 10px #FFD700;
+}
+
+.theme-switch-minimal__icon::after {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #FFD700;
+  box-shadow: 0 0 5px #FFD700;
+  clip-path: polygon(
+    50% 0%, 60% 40%, 100% 50%, 60% 60%, 
+    50% 100%, 40% 60%, 0% 50%, 40% 40%
+  ); /* Rayos del sol */
+  z-index: -1;
+}
+
+/* Luna creciente */
+.theme-switch-minimal__checkbox:checked + .theme-switch-minimal__icon::before {
+  background-color: #C4C9D1; /* Luna gris */
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #C4C9D1;
+  clip-path: circle(50% at 30% 50%);
+}
+
+.theme-switch-minimal__checkbox:checked + .theme-switch-minimal__icon::after {
+  width: 0;
+  height: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* Indicador del Modo */
+.theme-indicator {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.dark .theme-indicator {
+  color: #FFF;
+}
+</style>
+
+<!-- JAVASCRIPT PARA CAMBIO DE TEMA -->
+
+
+<script>
+// Referencias al interruptor y al indicador
+const themeSwitch = document.getElementById('theme-switch');
+const themeIndicator = document.getElementById('theme-indicator');
+
+// Cargar el tema guardado al iniciar la página
+document.addEventListener('DOMContentLoaded', () => {
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  if (currentTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+    themeSwitch.checked = true;
+    themeIndicator.textContent = 'Modo Oscuro';
+  } else {
+    document.documentElement.classList.remove('dark');
+    themeSwitch.checked = false;
+    themeIndicator.textContent = 'Modo Claro';
+  }
+});
+
+// Manejar el cambio de tema
+themeSwitch.addEventListener('change', () => {
+  if (themeSwitch.checked) {
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+    themeIndicator.textContent = 'Modo Oscuro';
+  } else {
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
+    themeIndicator.textContent = 'Modo Claro';
+  }
+});
+</script>
+    
 </nav>

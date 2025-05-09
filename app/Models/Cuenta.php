@@ -21,6 +21,7 @@ class Cuenta extends Model
         'productos',
         'metodos_pago',
         'pagada',
+        'tasa_dia',
     ];
 
     protected $casts = [

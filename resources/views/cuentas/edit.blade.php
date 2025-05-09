@@ -12,8 +12,8 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <div class="max-w-5xl mx-auto py-10 px-6">
-    <div class="bg-gray-800 shadow rounded-xl p-8">
-        <h2 class="text-2xl font-bold text-white mb-6">Editar Cuenta #{{ $cuenta->id }}</h2>
+    <div class="bg-light-card dark:bg-dark-card shadow rounded-xl p-8">
+        <h2 class="text-2xl font-bold text-light-text dark:text-dark-text mb-6">Editar Cuenta #{{ $cuenta->id }}</h2>
 
         @if ($errors->any())
             <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-6">
@@ -81,10 +81,10 @@
             </p>
             
 <!-- Indicadores de restante -->
-<p class="text-white font-bold mb-6">
+<p class="text-light-text dark:text-dark-text font-bold mb-6">
     Restante por Pagar en Dólares: <span id="restante-por-pagar-dolares" style="color: red;">0.00</span>
 </p>
-<p class="text-white font-bold mb-6">
+<p class="text-light-text dark:text-dark-text font-bold mb-6">
     Restante por Pagar en Bolívares: <span id="restante-por-pagar-bolivares" style="color: red;">0.00</span>
 </p>
 
@@ -92,7 +92,7 @@
 
             <!-- Métodos de Pago -->
             <div>
-                <label class="block text-sm font-medium text-white mb-2">Métodos de Pago</label>
+                <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-2">Métodos de Pago</label>
                 <div id="metodos-pago-container" class="space-y-4">
                     @foreach ($metodosPago as $pago)
                         <div class="grid grid-cols-12 gap-4 metodo-pago-item mb-2">

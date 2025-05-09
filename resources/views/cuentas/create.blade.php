@@ -1,19 +1,19 @@
 <x-app-layout>
-<x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+    <x-slot name="header">
+        <h2 class="text-xl font-semibold text-light-text dark:text-dark-text">
             {{ __('Registrar Nueva Cuenta') }}
         </h2>
     </x-slot>
 
-    <div class="py-6">
+    <div class="py-6 bg-light-background dark:bg-dark-background">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <form method="POST" action="{{ route('cuentas.store') }}" id="form-cuenta">
                 @csrf
-                <div class="bg-white dark:bg-gray-800 p-6 rounded shadow">
+                <div class="bg-light-card dark:bg-dark-card p-6 rounded shadow border border-light-border dark:border-dark-border">
 
                     <!-- Cliente (Nombre libre opcional) -->
                     <div class="mb-4">
-                        <label for="cliente_nombre" class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                        <label for="cliente_nombre" class="block font-medium text-sm text-light-text dark:text-dark-text">
                             Nombre del Cliente (opcional)
                         </label>
                         <input
@@ -21,31 +21,29 @@
                             name="cliente_nombre"
                             id="cliente_nombre"
                             value="{{ old('cliente_nombre') }}"
-                            class="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:text-white"
+                            class="w-full rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text"
                             placeholder="Ingrese Nombre y Apellido del Cliente">
                         
-                        {{-- Enlace para registrar un cliente (opcional) --}}
                         <a href="{{ route('clientes.create') }}"
-                        class="inline-block mt-2 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                        class="inline-block mt-2 px-3 py-1 bg-light-primary dark:bg-dark-primary text-white text-sm rounded hover:bg-light-hover dark:hover:bg-dark-hover">
                         + Registrar nuevo cliente
                         </a>
 
-                        {{-- Mostrar errores si hay --}}
                         @error('cliente_nombre')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            <p class="text-danger text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Responsable -->
                     <div class="mb-4">
-                        <label for="responsable" class="block font-medium text-sm text-gray-700 dark:text-gray-300">Responsable del Pedido</label>
-                        <input type="text" name="responsable" id="responsable" class="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:text-white" placeholder="Ingrese Nombre y Apellido del Responsable">
+                        <label for="responsable" class="block font-medium text-sm text-light-text dark:text-dark-text">Responsable del Pedido</label>
+                        <input type="text" name="responsable" id="responsable" class="w-full rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text" placeholder="Ingrese Nombre y Apellido del Responsable">
                     </div>
 
                     <!-- Estación -->
                     <div class="mb-4">
-                        <label for="estacion" class="block font-medium text-sm text-gray-700 dark:text-gray-300">Estación</label>
-                        <select name="estacion" id="estacion" class="select2 w-full">
+                        <label for="estacion" class="block font-medium text-sm text-light-text dark:text-dark-text">Estación</label>
+                        <select name="estacion" id="estacion" class="select2 w-full border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
                             <option value="Barra">Barra</option>
                             <option value="Cocina">Cocina</option>
                             <option value="Carne en Vara">Carne en Vara</option>
@@ -55,15 +53,15 @@
 
                     <!-- Fecha -->
                     <div class="mb-4">
-                        <label for="fecha_hora" class="block font-medium text-sm text-gray-700 dark:text-gray-300">Fecha y Hora</label>
-                        <input type="datetime-local" name="fecha_hora" id="fecha_hora" value="{{ now()->format('Y-m-d\TH:i') }}" class="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:text-white">
+                        <label for="fecha_hora" class="block font-medium text-sm text-light-text dark:text-dark-text">Fecha y Hora</label>
+                        <input type="datetime-local" name="fecha_hora" id="fecha_hora" value="{{ now()->format('Y-m-d\TH:i') }}" class="w-full rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
                     </div>
 
                     <!-- Pedido -->
                     <div class="mb-4">
-                        <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">Pedido</label>
+                        <label class="block font-medium text-sm text-light-text dark:text-dark-text">Pedido</label>
                         <div class="flex gap-2 mb-2">
-                            <select id="producto_select" class="select2 w-full">
+                            <select id="producto_select" class="select2 w-full border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
                                 <option value="">-- Buscar producto --</option>
                                 @foreach ($productos as $producto)
                                     <option value="{{ $producto->id }}">
@@ -71,11 +69,11 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="number" id="cantidad_input" class="w-24 rounded-md border-gray-300 dark:bg-gray-700 dark:text-white" value="1" min="1">
-                            <button type="button" onclick="agregarProducto()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Añadir</button>
+                            <input type="number" id="cantidad_input" class="w-24 rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text" value="1" min="1">
+                            <button type="button" onclick="agregarProducto()" class="bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">Añadir</button>
                         </div>
-                        <table class="min-w-full border mt-2" id="tabla-productos">
-                            <thead class="bg-gray-700 text-white">
+                        <table class="min-w-full border mt-2 border-light-border dark:border-dark-border" id="tabla-productos">
+                            <thead class="bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
                                 <tr>
                                     <th class="px-4 py-2 border">Producto</th>
                                     <th class="px-4 py-2 border">Cantidad</th>
@@ -87,8 +85,8 @@
                             <tbody></tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="3" class="px-4 py-2 text-right font-semibold text-white">Total Estimado:</td>
-                                    <td colspan="2" class="px-4 py-2 font-bold text-green-400" id="total">0.00 $</td>
+                                    <td colspan="3" class="px-4 py-2 text-right font-semibold text-light-text dark:text-dark-text">Total Estimado:</td>
+                                    <td colspan="2" class="px-4 py-2 font-bold text-light-success dark:text-dark-success" id="total">0.00 $</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -96,11 +94,10 @@
 
                     <!-- Métodos de Pago -->
                     <div class="mb-4">
-                        <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">Método(s) de Pago</label>
+                        <label class="block font-medium text-sm text-light-text dark:text-dark-text">Método(s) de Pago</label>
                         <div id="metodos_pago">
-                            <!-- Método de pago por defecto -->
                             <div class="flex gap-2 mt-2 metodo-pago items-center">
-                                <select name="metodo_pago[]" class="metodo-select rounded-md border-gray-300 dark:bg-gray-700 dark:text-white">
+                                <select name="metodo_pago[]" class="metodo-select rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
                                     <option value="">Seleccionar Método</option>
                                     <option value="divisas">Divisas ($)</option>
                                     <option value="pago_movil">Pago Móvil</option>
@@ -109,17 +106,17 @@
                                     <option value="euros">Euros en Efectivo</option>
                                     <option value="cuenta_casa">Cuenta Por la Casa</option>
                                 </select>
-                                <input type="number" name="monto_pago[]" step="0.01" placeholder="Monto" class="w-28 rounded-md border-gray-300 dark:bg-gray-700 dark:text-white">
-                                <input type="text" name="referencia_pago[]" placeholder="Referencia" class="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:text-white referencia" style="display:none;">
-                                <button type="button" class="bg-red-600 text-white px-2 py-1 rounded" onclick="$(this).parent().remove()">Eliminar</button>
+                                <input type="number" name="monto_pago[]" step="0.01" placeholder="Monto" class="w-28 rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
+                                <input type="text" name="referencia_pago[]" placeholder="Referencia" class="w-full rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text referencia" style="display:none;">
+                                <button type="button" class="bg-light-danger dark:bg-dark-danger text-white px-2 py-1 rounded" onclick="$(this).parent().remove()">Eliminar</button>
                             </div>
                         </div>
-                        <button type="button" onclick="agregarMetodoPago()" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Agregar Método</button>
+                        <button type="button" onclick="agregarMetodoPago()" class="mt-2 bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">+ Agregar Método</button>
                     </div>
 
                     <!-- Botón -->
                     <div class="mt-6 text-right">
-                        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Registrar Cuenta</button>
+                        <button type="submit" class="bg-light-success dark:bg-dark-success text-white px-6 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">Registrar Cuenta</button>
                     </div>
                 </div>
             </form>
@@ -192,18 +189,18 @@
             totalEstimado += parseFloat(subtotal);
 
             $('#tabla-productos tbody').append(`
-                <tr>
-                    <td class="px-4 py-2 border text-white">
+                 <tr>
+                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">
                         <input type="hidden" name="productos[]" value="${productoId}">
                         ${producto.nombre}
                     </td>
-                    <td class="px-4 py-2 border">
-                        <input type="number" name="cantidades[]" value="${cantidad}" class="w-16 border rounded text-black">
+                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">
+                        <input type="number" name="cantidades[]" value="${cantidad}" class="w-16 border rounded bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
                     </td>
-                    <td class="px-4 py-2 border text-white">$${precio.toFixed(2)}</td>
-                    <td class="px-4 py-2 border text-white">$${subtotal}</td>
+                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">$${precio.toFixed(2)}</td>
+                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">$${subtotal}</td>
                     <td class="px-4 py-2 border text-center">
-                        <button type="button" class="bg-red-600 text-white px-2 py-1 rounded" onclick="eliminarFila(this, ${subtotal})">Eliminar</button>
+                        <button type="button" class="bg-light-danger dark:bg-dark-danger text-white px-2 py-1 rounded" onclick="eliminarFila(this, ${subtotal})">Eliminar</button>
                     </td>
                 </tr>
             `);

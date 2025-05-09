@@ -70,16 +70,16 @@
                                 <th class="px-4 py-2">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 text-white divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="bg-white dark:bg-gray-800 text-light-text dark:text-dark-text divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach ($cuentas as $cuenta)
-                                <tr>
+                                <tr class="hover:bg-gray-300 dark:hover:bg-gray-700">
                                     <td class="px-4 py-2">{{ $cuenta->id }}</td>
                                     <td class="px-4 py-2">
                                         {{ $cuenta->cliente->nombre ?? $cuenta->cliente_nombre ?? 'Sin cliente' }}
                                     </td>
                                     <td class="px-4 py-2">{{ $cuenta->responsable_pedido ?? '—' }}</td>
                                     <td class="px-4 py-2">{{ $cuenta->estacion }}</td>
-                                    <td class="px-4 py-2 text-green-400">${{ number_format($cuenta->total_estimado, 2) }}</td>
+                                    <td class="px-4 py-2 text-green-700">${{ number_format($cuenta->total_estimado, 2) }}</td>
                                     <td class="px-4 py-2">{{ $cuenta->fecha_apertura }}</td>
                                     <td class="px-4 py-2 space-x-1">
                                         <!-- Botón Cerrar -->

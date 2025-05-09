@@ -76,6 +76,27 @@
 <!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const html = document.documentElement;
 
-    </body>
+    // Detectar colores oscuros y reemplazarlos
+    const darkColors = {
+        'bg-gray-900': 'bg-gray-100',
+        'bg-gray-800': 'bg-gray-200',
+        'text-gray-100': 'text-gray-900',
+        'text-gray-200': 'text-gray-800'
+    };
+
+    Object.keys(darkColors).forEach(darkClass => {
+        if (html.classList.contains(darkClass)) {
+            html.classList.remove(darkClass);
+            html.classList.add(darkColors[darkClass]);
+        }
+    });
+});
+</script>
+
+
+</body>
 </html>

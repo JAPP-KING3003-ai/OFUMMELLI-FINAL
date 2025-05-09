@@ -36,12 +36,12 @@
                         <tbody>
                             @forelse ($inventarios as $inventario)
                                 <tr class="hover:bg-gray-300 dark:hover:bg-gray-600">
-                                    <td class="py-2 px-4 border-b dark:border-gray-600 text-white">{{ $inventario->producto->codigo }}</td>
-                                    <td class="py-2 px-4 border-b dark:border-gray-600 text-white">{{ $inventario->producto->nombre }}</td>
-                                    <td class="py-2 px-4 border-b dark:border-gray-600 text-white">{{ $inventario->cantidad_inicial }}</td>
-                                    <td class="py-2 px-4 border-b dark:border-gray-600 text-white">{{ $inventario->cantidad_actual }}</td>
-                                    <td class="py-2 px-4 border-b dark:border-gray-600 text-white">${{ number_format($inventario->precio_costo, 2) }}</td>
-                                    <td class="py-2 px-4 border-b dark:border-gray-600 flex space-x-2">
+                                    <td class="text-center py-2 px-4 border-b dark:border-gray-600 text-light-text dark:text-dark-text">{{ $inventario->producto->codigo }}</td>
+                                    <td class="text-center py-2 px-4 border-b dark:border-gray-600 text-light-text dark:text-dark-text">{{ $inventario->producto->nombre }}</td>
+                                    <td class="text-center py-2 px-4 border-b dark:border-gray-600 text-light-text dark:text-dark-text">{{ $inventario->cantidad_inicial }}</td>
+                                    <td class="text-center py-2 px-4 border-b dark:border-gray-600 text-light-text dark:text-dark-text">{{ $inventario->cantidad_actual }}</td>
+                                    <td class="text-center py-2 px-4 border-b dark:border-gray-600 text-light-text dark:text-dark-text">${{ number_format($inventario->precio_costo, 2) }}</td>
+                                    <td class="text-center py-2 px-4 border-b dark:border-gray-600 flex space-x-2">
                                         <!-- BOTÓN NUEVA ENTRADA -->
                                         <a href="{{ route('inventarios.entrada', $inventario->id) }}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
                                             Entrada

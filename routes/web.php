@@ -66,7 +66,7 @@ Route::middleware('auth')->group(function () {
     // Tasa de cambio
     Route::get('/api/tasa-cambio', function () {
         // Ejemplo: Devuelve una tasa fija o consulta una API externa
-        return response()->json(['tasa' => 100]); // Sustituye por tu lógica real
+        return response()->json(['tasa' => 117]); // Sustituye por tu lógica real
     });
 
     Route::get('/dolar-promedio', [DolarPromedioController::class, 'obtenerDolarPromedio']);
