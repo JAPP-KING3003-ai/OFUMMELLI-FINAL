@@ -25,9 +25,53 @@
             </div>
         @endif
 
+            <!-- <form method="POST" action="{{ route('tasa.actualizar') }}" class="mb-4">
+    @csrf
+    <div class="flex items-center gap-2">
+        <label for="tasa_dia" class="block font-medium text-sm text-light-text dark:text-dark-text">
+            Tasa de Cambio Actual:
+        </label>
+        <input
+            type="number"
+            step="0.01"
+            name="tasa_dia"
+            id="tasa_dia"
+            value="{{ old('tasa_dia', $tasaActual ?? 0) }}"
+            class="w-32 rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text"
+        >
+        <button type="submit" class="bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">
+            Actualizar Tasa
+        </button>
+    </div>
+</form> -->
+
+    @if (session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">¡Éxito!</strong>
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+    @endif
+
         <form action="{{ route('cuentas.update', $cuenta->id) }}" method="POST" class="space-y-6">
-            @csrf
-            @method('PUT')
+    @csrf
+    @method('PUT')
+
+    <!-- Campo para tasa_dia -->
+<div class="flex items-center gap-2">
+    <label for="tasa_dia" class="block font-medium text-sm text-light-text dark:text-dark-text">
+        Tasa de Cambio Actual:
+    </label>
+    <input
+        type="number"
+        step="0.01"
+        name="tasa_dia"
+        id="tasa_dia"
+        value="{{ old('tasa_dia', $cuenta->tasa_dia ?? $tasaActual ?? 1) }}"
+        class="w-32 rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text"
+        oninput="calcularRestante()"
+    >
+</div>
+
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -137,17 +181,18 @@
     </div>
 </div>
 
-<!-- Scripts -->
+<!-- JAVASCRIPT 100% FUNCIONAL -->
+
 <script>
     $(document).ready(function () {
         // Inicializar Select2 en todos los productos existentes
         $('.producto-select').select2({
             placeholder: 'Busca un producto...',
             width: '100%'
-        }); 
+        });
 
-        // Agregar nuevo producto
-        $('#agregar-producto').on('click', function () {
+        // Función para agregar un nuevo producto
+        function agregarProducto() {
             const newRow = `
                 <div class="grid grid-cols-12 gap-4 producto-item">
                     <div class="col-span-6">
@@ -170,15 +215,10 @@
                 placeholder: 'Busca un producto...',
                 width: '100%'
             });
-        });
+        }
 
-        // Eliminar producto
-        $('#productos-container').on('click', '.remove-producto', function () {
-            $(this).closest('.producto-item').remove();
-        });
-
-        // Agregar nuevo método de pago
-        $('#agregar-metodo').on('click', function () {
+        // Función para agregar un nuevo método de pago
+        function agregarMetodoPago() {
             const metodoHTML = `
                 <div class="grid grid-cols-12 gap-4 metodo-pago-item mb-2">
                     <div class="col-span-4">
@@ -204,6 +244,20 @@
                 </div>
             `;
             $('#metodos-pago-container').append(metodoHTML);
+        }
+
+        // Asignar eventos "click" a los botones
+        $('#agregar-producto').off('click').on('click', function () {
+            agregarProducto();
+        });
+
+        $('#agregar-metodo').off('click').on('click', function () {
+            agregarMetodoPago();
+        });
+
+        // Eliminar producto
+        $('#productos-container').on('click', '.remove-producto', function () {
+            $(this).closest('.producto-item').remove();
         });
 
         // Eliminar método de pago
@@ -220,137 +274,92 @@
                 referenciaInput.addClass('hidden').hide().val('');
             }
         });
-    });
-    
-</script>
 
-<!-- LOGICA DE CONVERSION DE MONEDAS -->
-
-<script>
-    $(document).ready(function () {
-        // Tasa de cambio inicial
-        let tasaCambio = 0;
-
-        // Obtener la tasa de cambio desde una API al cargar la página
-        function fetchTasaCambio() {
-            $.ajax({
-                url: '/api/tasa-cambio', // Define tu endpoint para obtener la tasa de cambio
-                method: 'GET',
-                success: function (response) {
-                    tasaCambio = response.tasa; // Ejemplo: { "tasa": 30.5 }
-                    $('#tasa-cambio').val(tasaCambio);
-
-                    // Calcular el restante una vez que se obtiene la tasa de cambio
-                    calcularRestante();
-                },
-                error: function () {
-                    alert('Error al obtener la tasa de cambio.');
-                }
-            });
-        }
-
-        // Llamar a la función para cargar la tasa de cambio
-        fetchTasaCambio();
-
-        // Escuchar cambios en los montos y métodos de pago
-        $('#metodos-pago-container').on('input', 'input[name="monto_pago[]"], select[name="metodo_pago[]"]', function () {
-            calcularRestante();
-        });
-
+        // Lógica para calcular restante
         function calcularRestante() {
-            const totalEstimado = parseFloat($('#total-estimado').text());
+            const tasaCambio = parseFloat($('#tasa_dia').val()) || 0;
+            const totalEstimado = parseFloat($('#total-estimado').text()) || 0;
             let totalPagado = 0;
 
-            // Iterar sobre los métodos de pago
             $('#metodos-pago-container .metodo-pago-item').each(function () {
                 const metodo = $(this).find('select[name="metodo_pago[]"]').val();
-                let monto = parseFloat($(this).find('input[name="monto_pago[]"]').val()) || 0;
+                const monto = parseFloat($(this).find('input[name="monto_pago[]"]').val()) || 0;
 
                 if (metodo === 'divisas') {
-                    totalPagado += monto; // Sumar directamente en dólares
-                } else if (metodo === 'pago_movil' || metodo === 'bs_efectivo' || metodo === 'debito') {
-                    totalPagado += monto / tasaCambio; // Convertir Bolívares a Dólares
+                    totalPagado += monto;
+                } else if (['pago_movil', 'bs_efectivo', 'debito'].includes(metodo)) {
+                    totalPagado += monto / (tasaCambio || 1);
                 }
             });
 
-            // Calcular el restante en dólares
             const restanteDolares = Math.max(0, totalEstimado - totalPagado);
-
-            // Mostrar el restante en dólares
-            const restanteDolaresEl = $('#restante-por-pagar-dolares');
-            restanteDolaresEl.text(restanteDolares.toFixed(2));
-
-            // Cambiar color del texto según el monto restante
-            if (restanteDolares === 0) {
-                restanteDolaresEl.css('color', 'green');
-            } else {
-                restanteDolaresEl.css('color', 'red');
-            }
-
-            // Calcular el restante en bolívares
             const restanteBolivares = restanteDolares * tasaCambio;
 
-            // Mostrar el restante en bolívares
-            const restanteBolivaresEl = $('#restante-por-pagar-bolivares');
-            restanteBolivaresEl.text(restanteBolivares.toFixed(2));
+            $('#restante-por-pagar-dolares').text(restanteDolares.toFixed(2));
+            $('#restante-por-pagar-bolivares').text(restanteBolivares.toFixed(2));
 
-            // Cambiar color del texto según el monto restante en bolívares
-            if (restanteBolivares === 0) {
-                restanteBolivaresEl.css('color', 'green');
-            } else {
-                restanteBolivaresEl.css('color', 'red');
-            }
+            $('#restante-por-pagar-dolares').css('color', restanteDolares === 0 ? 'green' : 'red');
+            $('#restante-por-pagar-bolivares').css('color', restanteBolivares === 0 ? 'green' : 'red');
 
-            // Actualizar el placeholder de los métodos de pago en bolívares
             $('#metodos-pago-container .metodo-pago-item').each(function () {
                 const metodo = $(this).find('select[name="metodo_pago[]"]').val();
                 const inputMonto = $(this).find('input[name="monto_pago[]"]');
-                if (metodo === 'pago_movil' || metodo === 'bs_efectivo' || metodo === 'debito') {
-                    inputMonto.attr('placeholder', (restanteBolivares > 0 ? restanteBolivares.toFixed(2) : '0.00'));
+                if (['pago_movil', 'bs_efectivo', 'debito'].includes(metodo)) {
+                    inputMonto.attr('placeholder', restanteBolivares > 0 ? restanteBolivares.toFixed(2) : '0.00');
                 }
             });
         }
 
-        // Mostrar/ocultar campo referencia para Pago Móvil
-        $('#metodos-pago-container').on('change', '.metodo-select', function () {
-            const referenciaInput = $(this).closest('.metodo-pago-item').find('.referencia-input');
-            if ($(this).val() === 'pago_movil') {
-                referenciaInput.removeClass('hidden').show();
-            } else {
-                referenciaInput.addClass('hidden').hide().val('');
-            }
-        });
+        $('#metodos-pago-container').on('input', 'input[name="monto_pago[]"], select[name="metodo_pago[]"]', calcularRestante);
+        $('#tasa_dia').on('input', calcularRestante);
 
-        // Rellenar el campo con el placeholder al presionar TAB
         $('#metodos-pago-container').on('keydown', 'input[name="monto_pago[]"]', function (event) {
             if (event.key === 'Tab') {
                 const placeholder = $(this).attr('placeholder');
                 if (!$(this).val() && placeholder) {
                     $(this).val(placeholder);
-
-                    // Actualizar el cálculo después de rellenar automáticamente con el placeholder
                     calcularRestante();
                 }
             }
         });
 
-        // Ejecutar cálculo inicial al cargar la página
+        // Recalcular Total Estimado y Restante al agregar un nuevo producto
+$('#agregar-producto').off('click').on('click', function () {
+    const newRow = `
+        <div class="grid grid-cols-12 gap-4 producto-item">
+            <div class="col-span-6">
+                <select name="productos[]" class="producto-select w-full border-gray-300 rounded-md">
+                    @foreach ($productos as $item)
+                        <option value="{{ $item->id }}" data-precio="{{ $item->precio_venta }}">{{ $item->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-span-4">
+                <input type="number" name="cantidades[]" value="1" min="1" class="w-full border-gray-300 rounded-md">
+            </div>
+            <div class="col-span-2">
+                <button type="button" class="remove-producto w-full bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+            </div>
+        </div>
+    `;
+
+    $('#productos-container').append(newRow);
+
+    // Reinicializar Select2 para el nuevo producto
+    $('.producto-select').last().select2({
+        placeholder: 'Busca un producto...',
+        width: '100%'
+    });
+
+    // Recalcular el total estimado y el restante
+    calcularTotalEstimado();
+    calcularRestante();
+});
+
         calcularRestante();
-
-        // Permitir números decimales en los campos de entrada y forzar validación personalizada
-        $('#metodos-pago-container').on('input', 'input[name="monto_pago[]"]', function () {
-            const value = $(this).val();
-            if (!/^\d*\.?\d{0,2}$/.test(value)) {
-                $(this).val(value.slice(0, -1)); // Remover el último carácter no válido
-            }
-        });
-
-        // Configurar atributos de los campos numéricos
-        $('input[name="monto_pago[]"]').attr({
-            step: '0.01', // Permitir decimales
-            min: '0' // Evitar valores negativos
-        });
     });
 </script>
+
+ <!-- FIN DE JAVASCRIPT 100% FUNCIONAL -->
 
 @endsection

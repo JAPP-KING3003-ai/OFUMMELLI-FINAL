@@ -65,6 +65,8 @@ class CuentaController extends Controller
             'metodo_pago'      => 'required|array',
             'monto_pago'       => 'required|array',
             'referencia_pago'  => 'nullable|array',
+            // 'tasa_dia'         => 'nullable|numeric|min:0',
+            'tasa_dia'         => 'nullable|numeric|min:0', // Validar la tasa ingresada
         ]);
 
         if (empty($request->cliente_id) && empty($request->cliente_nombre)) {
@@ -76,6 +78,7 @@ class CuentaController extends Controller
         DB::beginTransaction();
 
         try {
+            $tasa = $request->tasa_dia ?? 1;
             $total = 0;
             $productos_array = [];
 
@@ -133,10 +136,12 @@ class CuentaController extends Controller
         $cuenta->productos = json_decode($cuenta->productos, true);
         $cuenta->metodos_pago = json_decode($cuenta->metodos_pago, true);
 
+        $tasaUsada = $cuenta->tasa_dia ?? null; // Asegúrate de que `tasa_dia` esté almacenada en la cuenta
+
         $productosIds = array_column($cuenta->productos, 'producto_id');
         $productos = Producto::whereIn('id', $productosIds)->get()->keyBy('id');
 
-        return view('cuentas.show', compact('cuenta', 'productos'));
+        return view('cuentas.show', compact('cuenta', 'productos', 'tasaUsada'));
     }
 
     public function edit($id)
@@ -145,9 +150,14 @@ class CuentaController extends Controller
     $clientes = Cliente::all();
     $productos = Producto::orderBy('nombre')->get();
 
-    $cuenta->productos = json_decode($cuenta->productos, true) ?? [];
-    $cuenta->metodos_pago = json_decode($cuenta->metodos_pago, true) ?? [];
+    // Decodificar los productos seleccionados almacenados en la cuenta
+    $productosSeleccionados = json_decode($cuenta->productos, true) ?? [];
+    $metodosPago = json_decode($cuenta->metodos_pago, true) ?? [];
 
+    // Obtener la tasa de cambio actual
+    $tasaActual = DB::table('config')->where('key', 'tasa_cambio')->value('value');
+
+    // Convertir productos a un formato útil para JavaScript
     $productosJS = $productos->mapWithKeys(function ($producto) {
         return [$producto->id => [
             'nombre' => $producto->nombre,
@@ -155,21 +165,16 @@ class CuentaController extends Controller
         ]];
     });
 
-    $productosSeleccionados = $cuenta->productos;
-    $cantidadesSeleccionadas = collect($productosSeleccionados)->pluck('cantidad')->toArray();
-    $metodosPago = $cuenta->metodos_pago;
-
     return view('cuentas.edit', compact(
         'cuenta',
         'clientes',
         'productos',
         'productosJS',
         'productosSeleccionados',
-        'cantidadesSeleccionadas',
-        'metodosPago'
+        'metodosPago',
+        'tasaActual'
     ));
 }
-
     public function update(Request $request, Cuenta $cuenta)
     {
         $request->validate([
@@ -185,6 +190,7 @@ class CuentaController extends Controller
             'metodo_pago'      => 'required|array',
             'monto_pago.*'     => 'numeric|min:0', // Validar cada monto como número decimal
             'referencia_pago'  => 'nullable|array',
+            'tasa_dia'         => 'nullable|numeric|min:0', // Validar la tasa ingresada
         ]);
 
         if (empty($request->cliente_id) && empty($request->cliente_nombre)) {
@@ -196,6 +202,7 @@ class CuentaController extends Controller
         DB::beginTransaction();
 
         try {
+            $tasa = $request->tasa_dia ?? 1; // Usar 1 como predeterminado si no se especifica
             $total = 0;
             $productos_array = [];
 
@@ -230,6 +237,10 @@ class CuentaController extends Controller
                 'estacion'           => $request->estacion,
                 'fecha_apertura'     => $request->fecha_hora,
                 'total_estimado'     => $total,
+                // 'tasa_dia'           => $request->tasa_dia ?? $cuenta->tasa_dia,
+                // 'tasa_dia'           => $tasa, // Actualizar la tasa del día
+                // 'tasa_dia'           => $request->tasa_dia ?? $cuenta->tasa_dia, // Usar el valor enviado o conservar el existente
+                'tasa_dia'           => $request->tasa_dia ?? $cuenta->tasa_dia, // Usar el valor enviado o conservar el existente
                 'productos'          => json_encode($productos_array),
                 'metodos_pago'       => json_encode($metodos_pago_array),
             ]);

@@ -8,6 +8,8 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\MovimientoController;
 use App\Http\Controllers\CuentaController; 
 use App\Http\Controllers\DolarPromedioController; // ✅ tasa de cambio
+use Illuminate\Support\Facades\DB;
+
 
 // Ruta principal
 Route::get('/', function () {
@@ -20,6 +22,8 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas');
+Route::post('/api/tasa-cambio', [DolarPromedioController::class, 'actualizarTasa'])->name('tasa.actualizar');
+
 
 // Agrupadas bajo autenticación
 Route::middleware('auth')->group(function () {
@@ -63,11 +67,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas');
     Route::get('/cuentas/{cuenta}/edit', [CuentaController::class, 'edit'])->name('cuentas.edit');
 
-    // Tasa de cambio
-    Route::get('/api/tasa-cambio', function () {
-        // Ejemplo: Devuelve una tasa fija o consulta una API externa
-        return response()->json(['tasa' => 117]); // Sustituye por tu lógica real
-    });
+Route::get('/api/tasa-cambio', function () {
+    // Leer la tasa de cambio desde la base de datos o configuración
+    $tasa = DB::table('config')->where('key', 'tasa_cambio')->value('value');
+    return response()->json(['tasa' => $tasa]);
+});
 
     Route::get('/dolar-promedio', [DolarPromedioController::class, 'obtenerDolarPromedio']);
 });

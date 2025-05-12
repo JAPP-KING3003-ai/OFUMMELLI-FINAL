@@ -19,6 +19,7 @@
 
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Estación:</strong> {{ $cuenta->estacion }}</p>
                 <p class="mb-4 text-light-text dark:text-dark-text"><strong>Fecha:</strong> {{ $cuenta->fecha_apertura->format('d/m/Y h:i A') }}</p>
+                <p class="text-green-400 text-sm"><strong>Tasa Usada:</strong> {{ $tasaUsada ?? 'No especificada' }} Bs/USD</p>
 
                 <!-- Productos -->
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Pedido:</h3>
