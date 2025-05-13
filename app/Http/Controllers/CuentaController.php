@@ -40,6 +40,9 @@ class CuentaController extends Controller
         $productos = Producto::orderBy('nombre')->get();
         $clientes = Cliente::all();
 
+        // Obtener la tasa de cambio actual desde la configuración global (si existe)
+        $tasaActual = DB::table('config')->where('key', 'tasa_cambio')->value('value') ?? null;
+
         $productosJS = $productos->mapWithKeys(function ($producto) {
             return [$producto->id => [
                 'nombre' => $producto->nombre,
@@ -47,87 +50,86 @@ class CuentaController extends Controller
             ]];
         });
 
-        return view('cuentas.create', compact('productos', 'productosJS', 'clientes'));
+        return view('cuentas.create', compact('productos', 'productosJS', 'clientes', 'tasaActual'));
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'cliente_id'       => 'nullable|exists:clientes,id',
-            'cliente_nombre'   => 'nullable|string|max:255',
-            'responsable'      => 'nullable|string|max:255',
-            'estacion'         => 'required|string|max:255',
-            'fecha_hora'       => 'required|date',
-            'productos'        => 'required|array',
-            'productos.*'      => 'exists:productos,id',
-            'cantidades'       => 'required|array',
-            'cantidades.*'     => 'numeric|min:1',
-            'metodo_pago'      => 'required|array',
-            'monto_pago'       => 'required|array',
-            'referencia_pago'  => 'nullable|array',
-            // 'tasa_dia'         => 'nullable|numeric|min:0',
-            'tasa_dia'         => 'nullable|numeric|min:0', // Validar la tasa ingresada
-        ]);
+{
+    $request->validate([
+        'cliente_id'       => 'nullable|exists:clientes,id',
+        'cliente_nombre'   => 'nullable|string|max:255',
+        'responsable'      => 'nullable|string|max:255',
+        'estacion'         => 'required|string|max:255',
+        'fecha_hora'       => 'required|date',
+        'productos'        => 'required|array',
+        'productos.*'      => 'exists:productos,id',
+        'cantidades'       => 'required|array',
+        'cantidades.*'     => 'numeric|min:1',
+        'metodo_pago'      => 'nullable|array',
+        'monto_pago.*'     => 'numeric|min:0',
+        'referencia_pago'  => 'nullable|array',
+        'tasa_dia'         => 'nullable|numeric|min:0',
+    ]);
 
-        if (empty($request->cliente_id) && empty($request->cliente_nombre)) {
-            return back()->withErrors([
-                'cliente_nombre' => 'Debe seleccionar un cliente o ingresar un nombre manual.',
-            ])->withInput();
+    if (empty($request->cliente_id) && empty($request->cliente_nombre)) {
+        return back()->withErrors([
+            'cliente_nombre' => 'Debe seleccionar un cliente o ingresar un nombre manual.',
+        ])->withInput();
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $productos_array = [];
+        $total = 0;
+
+        foreach ($request->productos as $index => $producto_id) {
+            $producto = Producto::findOrFail($producto_id);
+            $cantidad = $request->cantidades[$index] ?? 1;
+            $subtotal = $producto->precio_venta * $cantidad;
+
+            $productos_array[] = [
+                'producto_id' => $producto_id,
+                'cantidad'    => $cantidad,
+                'precio'      => $producto->precio_venta,
+                'subtotal'    => $subtotal
+            ];
+
+            $total += $subtotal;
         }
 
-        DB::beginTransaction();
-
-        try {
-            $tasa = $request->tasa_dia ?? 1;
-            $total = 0;
-            $productos_array = [];
-
-            foreach ($request->productos as $index => $producto_id) {
-                $producto = Producto::findOrFail($producto_id);
-                $cantidad = $request->cantidades[$index] ?? 1;
-                $subtotal = $producto->precio_venta * $cantidad;
-
-                $productos_array[] = [
-                    'producto_id' => $producto_id,
-                    'cantidad'    => $cantidad,
-                    'precio'      => $producto->precio_venta,
-                    'subtotal'    => $subtotal
-                ];
-
-                $total += $subtotal;
-            }
-
-            $cuenta = Cuenta::create([
-                'cliente_id'         => $request->cliente_id,
-                'cliente_nombre'     => $request->cliente_nombre ?? null,
-                'usuario_id'         => Auth::id(),
-                'responsable_pedido' => $request->responsable,
-                'estacion'           => $request->estacion,
-                'fecha_apertura'     => $request->fecha_hora,
-                'total_estimado'     => $total,
-                'productos'          => json_encode($productos_array),
-                'metodos_pago'       => json_encode([]), // provisional para luego actualizar
-            ]);
-
-            $metodos_pago_array = [];
+        // Procesar métodos de pago solo si existen
+        $metodos_pago_array = [];
+        if ($request->has('metodo_pago')) {
             foreach ($request->metodo_pago as $index => $metodo) {
                 $metodos_pago_array[] = [
                     'metodo'     => $metodo,
-                    'monto'      => $request->monto_pago[$index] ?? 0,
+                    'monto'      => number_format((float) $request->monto_pago[$index], 2, '.', ''),
                     'referencia' => $request->referencia_pago[$index] ?? null,
                 ];
             }
-
-            $cuenta->metodos_pago = json_encode($metodos_pago_array);
-            $cuenta->save();
-
-            DB::commit();
-            return redirect()->route('cuentas.index')->with('success', 'Cuenta registrada exitosamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'Error al registrar la cuenta: ' . $e->getMessage()]);
         }
+
+        $cuenta = Cuenta::create([
+            'cliente_id'         => $request->cliente_id,
+            'cliente_nombre'     => $request->cliente_nombre,
+            'usuario_id'         => Auth::id(),
+            'responsable_pedido' => $request->responsable,
+            'estacion'           => $request->estacion,
+            'fecha_apertura'     => $request->fecha_hora,
+            'total_estimado'     => $total,
+            'productos'          => json_encode($productos_array),
+            'metodos_pago'       => json_encode($metodos_pago_array),
+            'tasa_dia'           => $request->tasa_dia ?? 1,
+        ]);
+
+        DB::commit();
+        return redirect()->route('cuentas.index')->with('success', 'Cuenta registrada exitosamente.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->withErrors(['error' => 'Error al registrar la cuenta: ' . $e->getMessage()]);
     }
+}
 
     public function show($id)
     {
@@ -190,6 +192,9 @@ class CuentaController extends Controller
             'metodo_pago'      => 'required|array',
             'monto_pago.*'     => 'numeric|min:0', // Validar cada monto como número decimal
             'referencia_pago'  => 'nullable|array',
+            'cuenta_pago_movil.*' => 'nullable|string',
+            'banco_punto_venta.*' => 'nullable|string',
+            'cuenta_casa_autorizado.*' => 'nullable|string',
             'tasa_dia'         => 'nullable|numeric|min:0', // Validar la tasa ingresada
         ]);
 
@@ -227,6 +232,9 @@ class CuentaController extends Controller
                     'metodo'     => $metodo,
                     'monto'      => number_format((float)$request->monto_pago[$index], 2, '.', ''), // Formatear como decimal
                     'referencia' => $request->referencia_pago[$index] ?? null,
+                    'cuenta'     => $request->cuenta_pago_movil[$index] ?? null, // Para Pago Móvil
+                    'banco'      => $request->banco_punto_venta[$index] ?? null, // Para Punto de Venta
+                    'autorizado_por' => $request->cuenta_casa_autorizado[$index] ?? null, // Para Cuenta Por la Casa
                 ];
             }
 
@@ -237,9 +245,6 @@ class CuentaController extends Controller
                 'estacion'           => $request->estacion,
                 'fecha_apertura'     => $request->fecha_hora,
                 'total_estimado'     => $total,
-                // 'tasa_dia'           => $request->tasa_dia ?? $cuenta->tasa_dia,
-                // 'tasa_dia'           => $tasa, // Actualizar la tasa del día
-                // 'tasa_dia'           => $request->tasa_dia ?? $cuenta->tasa_dia, // Usar el valor enviado o conservar el existente
                 'tasa_dia'           => $request->tasa_dia ?? $cuenta->tasa_dia, // Usar el valor enviado o conservar el existente
                 'productos'          => json_encode($productos_array),
                 'metodos_pago'       => json_encode($metodos_pago_array),

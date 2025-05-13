@@ -7,16 +7,11 @@
 
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div style="color: white;" class="bg-white dark:bg-gray-800 p-6 rounded shadow ">
+            <div style="color: white;" class="bg-white dark:bg-gray-800 p-6 rounded shadow">
 
                 <!-- Información General -->
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Responsable:</strong> {{ $cuenta->responsable_pedido ?? 'No especificado' }}</p>
-
-                <p class="mb-2 text-light-text dark:text-dark-text">
-                    <strong>Cliente:</strong>
-                    {{ $cuenta->cliente_nombre ?? 'No especificado' }}
-                </p>
-
+                <p class="mb-2 text-light-text dark:text-dark-text"><strong>Cliente:</strong> {{ $cuenta->cliente_nombre ?? 'No especificado' }}</p>
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Estación:</strong> {{ $cuenta->estacion }}</p>
                 <p class="mb-4 text-light-text dark:text-dark-text"><strong>Fecha:</strong> {{ $cuenta->fecha_apertura->format('d/m/Y h:i A') }}</p>
                 <p class="text-green-400 text-sm"><strong>Tasa Usada:</strong> {{ $tasaUsada ?? 'No especificada' }} Bs/USD</p>
@@ -57,17 +52,22 @@
                         @php
                             $nombreMetodo = match($pago['metodo']) {
                                 'divisas' => 'Divisas ($)',
-                                'pago_movil' => 'Pago Móvil (Bs o $)',
+                                'pago_movil' => 'Pago Móvil (Bs)',
+                                'zelle' => 'Zelle (Dólares)',
+                                'punto_venta' => 'Punto de Venta',
+                                'tarjeta_credito_dolares' => 'Tarjeta de Crédito (Dólares)',
+                                'tarjeta_credito_bolivares' => 'Tarjeta de Crédito (Bolívares)',
                                 'bs_efectivo' => 'Bolívares en Efectivo',
                                 'debito' => 'Tarjeta Débito',
                                 'euros' => 'Euros en Efectivo',
                                 'cuenta_casa' => 'Cuenta Por la Casa',
-                                default => 'Seleccionar Método',
+                                'propina' => 'Propina',
+                                default => 'Método Desconocido',
                             };
 
                             $simbolo = match($pago['metodo']) {
-                                'divisas', 'pago_movil' => '$ ',
-                                'bs_efectivo' => 'Bs ',
+                                'divisas', 'zelle', 'tarjeta_credito_dolares' => '$',
+                                'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares', 'pago_movil' => 'Bs ',
                                 'euros' => '€ ',
                                 default => '',
                             };
@@ -78,11 +78,17 @@
                             @if (!empty($pago['referencia']))
                                 <span class="ml-2 text-sm text-gray-500">(Ref: {{ $pago['referencia'] }})</span>
                             @endif
+                            @if ($pago['metodo'] === 'punto_venta')
+                                <span class="ml-2 text-sm text-gray-500">(Banco: {{ ucfirst($pago['banco'] ?? 'No especificado') }})</span>
+                            @endif
+                            @if ($pago['metodo'] === 'cuenta_casa')
+                                <span class="ml-2 text-sm text-gray-500">(Autorizado por: {{ $pago['autorizado_por'] ?? 'No especificado' }})</span>
+                            @endif
                         </li>
                     @endforeach
                 </ul>
 
-                                <!-- Botón de regreso -->
+                <!-- Botón de regreso -->
                 <div class="mt-6 flex justify-end gap-4">
                     <a href="{{ route('cuentas.index') }}"
                     class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition-all duration-200">

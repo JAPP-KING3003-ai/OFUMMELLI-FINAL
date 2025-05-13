@@ -93,27 +93,13 @@
                     </div>
 
                     <!-- Métodos de Pago -->
-                    <div class="mb-4">
-                        <label class="block font-medium text-sm text-light-text dark:text-dark-text">Método(s) de Pago</label>
-                        <div id="metodos_pago">
-                            <div class="flex gap-2 mt-2 metodo-pago items-center">
-                                <select name="metodo_pago[]" class="metodo-select rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
-                                    <option value="">Seleccionar Método</option>
-                                    <option value="divisas">Divisas ($)</option>
-                                    <option value="pago_movil">Pago Móvil</option>
-                                    <option value="bs_efectivo">Bolívares en Efectivo</option>
-                                    <option value="debito">Tarjeta Débito</option>
-                                    <option value="euros">Euros en Efectivo</option>
-                                    <option value="cuenta_casa">Cuenta Por la Casa</option>
-                                </select>
-                                <input type="number" name="monto_pago[]" step="0.01" placeholder="Monto" class="w-28 rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
-                                <input type="text" name="referencia_pago[]" placeholder="Referencia" class="w-full rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text referencia" style="display:none;">
-                                <button type="button" class="bg-light-danger dark:bg-dark-danger text-white px-2 py-1 rounded" onclick="$(this).parent().remove()">Eliminar</button>
-                            </div>
-                        </div>
-                        <button type="button" onclick="agregarMetodoPago()" class="mt-2 bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">+ Agregar Método</button>
-                    </div>
-
+<div class="mb-4">
+    <label class="block font-medium text-sm text-light-text dark:text-dark-text">Método(s) de Pago</label>
+    <div id="metodos_pago">
+        <!-- Inicialmente vacío -->
+    </div>
+    <button type="button" onclick="agregarMetodoPago()" class="mt-2 bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">+ Agregar Método</button>
+</div>
                     <!-- Botón -->
                     <div class="mt-6 text-right">
                         <button type="submit" class="bg-light-success dark:bg-dark-success text-white px-6 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">Registrar Cuenta</button>
@@ -227,6 +213,7 @@
                         <option value="debito">Tarjeta Débito</option>
                         <option value="euros">Euros en Efectivo</option>
                         <option value="cuenta_casa">Cuenta Por la Casa</option>
+                        <option value="propina">Propina</option>
                     </select>
                     <input type="number" name="monto_pago[]" step="0.01" placeholder="Monto" class="w-28 rounded-md border-gray-300 dark:bg-gray-700 dark:text-white">
                     <input type="text" name="referencia_pago[]" placeholder="Referencia" class="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:text-white referencia" style="display:none;">

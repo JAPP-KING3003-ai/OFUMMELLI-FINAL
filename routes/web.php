@@ -23,6 +23,7 @@ Route::get('/dashboard', function () {
 
 Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas');
 Route::post('/api/tasa-cambio', [DolarPromedioController::class, 'actualizarTasa'])->name('tasa.actualizar');
+Route::post('/cuentas', [CuentaController::class, 'store'])->name('cuentas.store');
 
 
 // Agrupadas bajo autenticación
