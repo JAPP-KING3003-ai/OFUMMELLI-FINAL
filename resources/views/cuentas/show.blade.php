@@ -92,7 +92,7 @@
                             };
 
                             $simbolo = match($pago['metodo']) {
-                                'divisas', 'zelle', 'tarjeta_credito_dolares' => '$',
+                                'divisas', 'zelle', 'tarjeta_credito_dolares', 'propina' => '$',
                                 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares', 'pago_movil' => 'Bs ',
                                 'euros' => '€ ',
                                 default => '',
@@ -103,6 +103,9 @@
                             {{ $simbolo }}{{ number_format($pago['monto'], 2) }}
                             @if (!empty($pago['referencia']))
                                 <span class="ml-2 text-sm text-gray-500">(Ref: {{ $pago['referencia'] }})</span>
+                            @endif
+                            @if ($pago['metodo'] === 'pago_movil')
+                                <span class="ml-2 text-sm text-gray-500">(Cuenta: {{ ucfirst(str_replace('_', ' ', $pago['cuenta'] ?? 'No especificado')) }})</span>
                             @endif
                             @if ($pago['metodo'] === 'punto_venta')
                                 <span class="ml-2 text-sm text-gray-500">(Banco: {{ ucfirst($pago['banco'] ?? 'No especificado') }})</span>

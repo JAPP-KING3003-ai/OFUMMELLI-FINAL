@@ -179,6 +179,17 @@
                         </select>
                     </div>
 
+                    <!-- Nuevo Campo para Cuentas de Pago Móvil -->
+                    <div class="col-span-3 {{ $pago['metodo'] == 'pago_movil' ? '' : 'hidden' }} cuenta-pago-movil">
+                        <select name="cuenta_pago_movil[]" class="w-full border-gray-300 rounded-md">
+                            <option value="">Seleccionar Cuenta</option>
+                            <option value="genesis_venezuela" {{ $pago['cuenta'] == 'genesis_venezuela' ? 'selected' : '' }}>Banco de Venezuela - Genesis</option>
+                            <option value="esmerley_venezuela" {{ $pago['cuenta'] == 'esmerley_venezuela' ? 'selected' : '' }}>Banco de Venezuela - Esmerley</option>
+                            <option value="genesis_banesco" {{ $pago['cuenta'] == 'genesis_banesco' ? 'selected' : '' }}>Banco Banesco - Genesis</option>
+                            <option value="esmerley_banesco" {{ $pago['cuenta'] == 'esmerley_banesco' ? 'selected' : '' }}>Banco Banesco - Esmerley</option>
+                        </select>
+                    </div>
+
                     <!-- Campo para Autorizado Por (Cuenta Por la Casa) -->
                     <div class="col-span-3 {{ $pago['metodo'] == 'cuenta_casa' ? '' : 'hidden' }} cuenta-casa-autorizado">
                         <input type="text" name="cuenta_casa_autorizado[]" value="{{ $pago['autorizado_por'] }}" placeholder="Autorizado por" class="w-full border-gray-300 rounded-md">
