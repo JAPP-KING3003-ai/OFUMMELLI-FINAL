@@ -124,50 +124,76 @@
                 Total Estimado: $<span id="total-estimado">{{ number_format($cuenta->total_estimado, 2) }}</span>
             </p>
             
-<!-- Indicadores de restante -->
-<p class="text-light-text dark:text-dark-text font-bold mb-6">
-    Restante por Pagar en Dólares: <span id="restante-por-pagar-dolares" style="color: red;">0.00</span>
-</p>
-<p class="text-light-text dark:text-dark-text font-bold mb-6">
-    Restante por Pagar en Bolívares: <span id="restante-por-pagar-bolivares" style="color: red;">0.00</span>
-</p>
+        <!-- Indicadores de restante -->
+        <p class="text-light-text dark:text-dark-text font-bold mb-6">
+            Restante por Pagar en Dólares: <span id="restante-por-pagar-dolares" style="color: red;">0.00</span>
+        </p>
+        <p class="text-light-text dark:text-dark-text font-bold mb-6">
+            Restante por Pagar en Bolívares: <span id="restante-por-pagar-bolivares" style="color: red;">0.00</span>
+        </p>
+
+        <p class="text-light-danger dark:text-dark-danger font-bold">
+            <strong>Vuelto:</strong> $<span id="vuelto">0.00</span>
+        </p>
 
 
 
-            <!-- Métodos de Pago -->
+
+<!-- Métodos de Pago -->
 <div>
     <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-2">Métodos de Pago</label>
     <div id="metodos-pago-container" class="space-y-4">
-    @if (!empty($metodosPago))
-        @foreach ($metodosPago as $pago)
-            <div class="grid grid-cols-12 gap-4 metodo-pago-item mb-2">
-                <div class="col-span-3">
-                    <select name="metodo_pago[]" class="w-full border-gray-300 rounded-md metodo-select">
-                        <option value="divisas" {{ $pago['metodo'] == 'divisas' ? 'selected' : '' }}>Divisas ($)</option>
-                        <option value="pago_movil" {{ $pago['metodo'] == 'pago_movil' ? 'selected' : '' }}>Pago Móvil</option>
-                        <option value="bs_efectivo" {{ $pago['metodo'] == 'bs_efectivo' ? 'selected' : '' }}>Bolívares en Efectivo</option>
-                        <option value="debito" {{ $pago['metodo'] == 'debito' ? 'selected' : '' }}>Tarjeta Débito</option>
-                        <option value="euros" {{ $pago['metodo'] == 'euros' ? 'selected' : '' }}>Euros en Efectivo</option>
-                        <option value="cuenta_casa" {{ $pago['metodo'] == 'cuenta_casa' ? 'selected' : '' }}>Cuenta Por la Casa</option>
-                        <option value="propina" {{ $pago['metodo'] == 'propina' ? 'selected' : '' }}>Propina</option>
-                    </select>
+        @if (!empty($metodosPago))
+            @foreach ($metodosPago as $pago)
+                <div class="grid grid-cols-12 gap-4 metodo-pago-item mb-2">
+                    <div class="col-span-3">
+                        <select name="metodo_pago[]" class="w-full border-gray-300 rounded-md metodo-select">
+                            <option value="divisas" {{ $pago['metodo'] == 'divisas' ? 'selected' : '' }}>Divisas ($)</option>
+                            <option value="pago_movil" {{ $pago['metodo'] == 'pago_movil' ? 'selected' : '' }}>Pago Móvil</option>
+                            <option value="zelle" {{ $pago['metodo'] == 'zelle' ? 'selected' : '' }}>Zelle (Dólares)</option>
+                            <option value="punto_venta" {{ $pago['metodo'] == 'punto_venta' ? 'selected' : '' }}>Punto de Venta</option>
+                            <option value="tarjeta_credito_dolares" {{ $pago['metodo'] == 'tarjeta_credito_dolares' ? 'selected' : '' }}>Tarjeta de Crédito (Dólares)</option>
+                            <option value="tarjeta_credito_bolivares" {{ $pago['metodo'] == 'tarjeta_credito_bolivares' ? 'selected' : '' }}>Tarjeta de Crédito (Bolívares)</option>
+                            <option value="bs_efectivo" {{ $pago['metodo'] == 'bs_efectivo' ? 'selected' : '' }}>Bolívares en Efectivo</option>
+                            <!-- <option value="debito" {{ $pago['metodo'] == 'debito' ? 'selected' : '' }}>Tarjeta Débito</option> -->
+                            <option value="euros" {{ $pago['metodo'] == 'euros' ? 'selected' : '' }}>Euros en Efectivo</option>
+                            <option value="cuenta_casa" {{ $pago['metodo'] == 'cuenta_casa' ? 'selected' : '' }}>Cuenta Por la Casa</option>
+                            <option value="propina" {{ $pago['metodo'] == 'propina' ? 'selected' : '' }}>Propina</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-3">
+                        <input type="number" name="monto_pago[]" value="{{ $pago['monto'] }}" placeholder="Monto" class="w-full border-gray-300 rounded-md" step="0.01">
+                    </div>
+
+                    <!-- Campo para Referencia -->
+                    <div class="col-span-3">
+                        <input type="text" name="referencia_pago[]" value="{{ $pago['referencia'] }}" placeholder="Referencia" class="w-full border-gray-300 rounded-md referencia-input">
+                    </div>
+
+                    <!-- Campo para Banco (Solo para Punto de Venta) -->
+                    <div class="col-span-3 {{ $pago['metodo'] == 'punto_venta' ? '' : 'hidden' }} banco-punto-venta">
+                        <select name="banco_punto_venta[]" class="w-full border-gray-300 rounded-md">
+                            <option value="venezuela" {{ $pago['banco'] == 'venezuela' ? 'selected' : '' }}>Banco de Venezuela</option>
+                            <option value="bancamiga" {{ $pago['banco'] == 'bancamiga' ? 'selected' : '' }}>Bancamiga</option>
+                        </select>
+                    </div>
+
+                    <!-- Campo para Autorizado Por (Cuenta Por la Casa) -->
+                    <div class="col-span-3 {{ $pago['metodo'] == 'cuenta_casa' ? '' : 'hidden' }} cuenta-casa-autorizado">
+                        <input type="text" name="cuenta_casa_autorizado[]" value="{{ $pago['autorizado_por'] }}" placeholder="Autorizado por" class="w-full border-gray-300 rounded-md">
+                    </div>
+
+                    <div class="col-span-2">
+                        <button type="button" class="remove-metodo w-full bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+                    </div>
                 </div>
-                <div class="col-span-3">
-                    <input type="number" name="monto_pago[]" value="{{ $pago['monto'] }}" placeholder="Monto" class="w-full border-gray-300 rounded-md" step="0.01">
-                </div>
-                <div class="col-span-3">
-                    <input type="text" name="referencia_pago[]" value="{{ $pago['referencia'] }}" placeholder="Referencia" class="w-full border-gray-300 rounded-md">
-                </div>
-                <div class="col-span-2">
-                    <button type="button" class="remove-metodo w-full bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600">Eliminar</button>
-                </div>
-            </div>
-        @endforeach
-    @endif
-</div>
+            @endforeach
+        @endif
+    </div>
 
     <button type="button" id="agregar-metodo" class="mt-3 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">+ Agregar Método de Pago</button>
-
+</div>
 
             <!-- Botón Submit -->
             <div class="text-right">
@@ -182,6 +208,10 @@
         </form> 
     </div>
 </div>
+
+<!-- Campos ocultos para enviar total_pagado y vuelto -->
+<input type="hidden" name="total_pagado" id="hidden-total-pagado" value="0.00">
+<input type="hidden" name="vuelto" id="hidden-vuelto" value="0.00">
 
 <!-- JAVASCRIPT 100% FUNCIONAL -->
 
@@ -313,7 +343,6 @@
                             <option value="tarjeta_credito_dolares">Tarjeta de Crédito (Dólares)</option>
                             <option value="tarjeta_credito_bolivares">Tarjeta de Crédito (Bolívares)</option>
                             <option value="bs_efectivo">Bolívares en Efectivo</option>
-                            <option value="debito">Tarjeta Débito</option>
                             <option value="euros">Euros en Efectivo</option>
                             <option value="cuenta_casa">Cuenta Por la Casa</option>
                             <option value="propina">Propina</option>
@@ -386,8 +415,93 @@
         actualizarCamposMetodoPago();
         calcularRestante();
     });
+
+    // JAVASCRIPT PARA CALCULAR VUELTO
+
+    // $(document).ready(function () {
+    //     // Función para calcular el vuelto
+    //     function calcularVuelto() {
+    //         const totalEstimado = parseFloat($('#total-estimado').text()) || 0;
+    //         let totalPagado = 0;
+
+    //         // Sumar todos los montos ingresados en los métodos de pago
+    //         $('input[name="monto_pago[]"]').each(function () {
+    //             totalPagado += parseFloat($(this).val()) || 0;
+    //         });
+
+    //         const vuelto = totalPagado > totalEstimado ? totalPagado - totalEstimado : 0;
+
+    //         // Actualizar los campos visibles
+    //         $('#total-pagado').text(totalPagado.toFixed(2));
+    //         $('#vuelto').text(vuelto.toFixed(2));
+
+    //         // Actualizar los campos ocultos
+    //         $('#hidden-total-pagado').val(totalPagado.toFixed(2));
+    //         $('#hidden-vuelto').val(vuelto.toFixed(2));
+    //     }
+
+    //     // Recalcular al modificar los montos de pago
+    //     $(document).on('input', 'input[name="monto_pago[]"]', calcularVuelto);
+
+    //     // Ejecutar el cálculo inicial al cargar la página
+    //     calcularVuelto();
+
+    //     // Asegurarse de que los valores se actualicen antes de enviar el formulario
+    //     $('form').on('submit', function (e) {
+    //         calcularVuelto();
+    //     });
+    // });
 </script>
 
  <!-- FIN DE JAVASCRIPT 100% FUNCIONAL -->
+
+<script>
+    $(document).ready(function () {
+        // Función para calcular el vuelto correctamente según las monedas
+        function calcularVuelto() {
+            const totalEstimado = parseFloat($('#total-estimado').text()) || 0;
+            const tasaCambio = parseFloat($('#tasa_dia').val()) || 1; // Tasa de cambio para convertir bolívares a dólares
+            let totalPagadoEnDolares = 0;
+
+            // Sumar todos los montos ingresados en los métodos de pago
+            $('#metodos-pago-container .metodo-pago-item').each(function () {
+                const metodo = $(this).find('select[name="metodo_pago[]"]').val();
+                const monto = parseFloat($(this).find('input[name="monto_pago[]"]').val()) || 0;
+
+                // Convertir montos a dólares según el método de pago
+                if (['divisas', 'zelle', 'tarjeta_credito_dolares'].includes(metodo)) {
+                    totalPagadoEnDolares += monto; // Pagos en dólares no requieren conversión
+                } else if (['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'].includes(metodo)) {
+                    totalPagadoEnDolares += monto / tasaCambio; // Convertir bolívares a dólares
+                } else if (metodo === 'euros') {
+                    const tasaEuroDolar = 1.1; // Tasa fija de EUR a USD (ajústala según tus necesidades)
+                    totalPagadoEnDolares += monto * tasaEuroDolar; // Convertir euros a dólares
+                }
+            });
+
+            // Calcular el vuelto
+            const vuelto = totalPagadoEnDolares > totalEstimado ? totalPagadoEnDolares - totalEstimado : 0;
+
+            // Actualizar los campos visibles
+            $('#total-pagado').text(totalPagadoEnDolares.toFixed(2));
+            $('#vuelto').text(vuelto.toFixed(2));
+
+            // Actualizar los campos ocultos
+            $('#hidden-total-pagado').val(totalPagadoEnDolares.toFixed(2));
+            $('#hidden-vuelto').val(vuelto.toFixed(2));
+        }
+
+        // Recalcular el vuelto al modificar los montos de pago o la tasa de cambio
+        $(document).on('input', 'input[name="monto_pago[]"], #tasa_dia', calcularVuelto);
+
+        // Ejecutar el cálculo inicial al cargar la página
+        calcularVuelto();
+
+        // Asegurarse de que los valores se actualicen antes de enviar el formulario
+        $('form').on('submit', function (e) {
+            calcularVuelto();
+        });
+    });
+</script>
 
 @endsection

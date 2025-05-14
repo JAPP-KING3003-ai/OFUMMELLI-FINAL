@@ -22,6 +22,7 @@ class Cuenta extends Model
         'metodos_pago',
         'pagada',
         'tasa_dia',
+        'vuelto', // Asegúrate de que este campo esté incluido
     ];
 
     protected $casts = [

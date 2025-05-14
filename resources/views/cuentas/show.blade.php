@@ -14,7 +14,7 @@
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Cliente:</strong> {{ $cuenta->cliente_nombre ?? 'No especificado' }}</p>
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Estación:</strong> {{ $cuenta->estacion }}</p>
                 <p class="mb-4 text-light-text dark:text-dark-text"><strong>Fecha:</strong> {{ $cuenta->fecha_apertura->format('d/m/Y h:i A') }}</p>
-                <p class="text-green-400 text-sm"><strong>Tasa Usada:</strong> {{ $tasaUsada ?? 'No especificada' }} Bs/USD</p>
+                <p class="text-green-400 text-sm"><strong>Tasa Usada:</strong> {{ number_format($cuenta->tasa_dia, 2) }} Bs/USD</p>
 
                 <!-- Productos -->
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Pedido:</h3>
@@ -43,6 +43,32 @@
                 </table>
 
                 <p class="font-bold text-green-400 mb-6">Total Estimado: ${{ number_format($cuenta->total_estimado, 2) }}</p>
+
+                @php
+                    // Cálculo del vuelto considerando las monedas
+                    $totalPagadoEnDolares = 0;
+                    foreach ($cuenta->metodos_pago as $pago) {
+                        $monto = $pago['monto'] ?? 0;
+                        if (in_array($pago['metodo'], ['divisas', 'zelle', 'tarjeta_credito_dolares'])) {
+                            $totalPagadoEnDolares += $monto; // Pagos en dólares
+                        } elseif (in_array($pago['metodo'], ['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'])) {
+                            $totalPagadoEnDolares += $monto / $cuenta->tasa_dia; // Convertir bolívares a dólares
+                        } elseif ($pago['metodo'] === 'euros') {
+                            $totalPagadoEnDolares += $monto * 1.1; // Convertir euros a dólares (tasa fija)
+                        }
+                    }
+                    $vuelto = max(0, $totalPagadoEnDolares - $cuenta->total_estimado);
+                @endphp
+
+                <div class="mb-4">
+                    <p class="text-light-text dark:text-dark-text">
+                        <strong>Total Pagado:</strong> ${{ number_format($totalPagadoEnDolares, 2) }}
+                    </p>
+                    <br>
+                    <p class="text-light-danger dark:text-dark-danger">
+                        <strong>Vuelto:</strong> ${{ number_format($vuelto, 2) }}
+                    </p>
+                </div>
 
                 <!-- Métodos de Pago -->
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Métodos de Pago:</h3>
