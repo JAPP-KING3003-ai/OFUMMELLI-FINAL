@@ -31,6 +31,7 @@
                             <option value="unidad">Unidad</option>
                             <option value="combo">Combo</option>
                             <option value="promocion">Promoción</option>
+                            <option value="vaso">Vaso</option>
                             <option value="otro">Otro...</option>
                         </select>
                     </div>

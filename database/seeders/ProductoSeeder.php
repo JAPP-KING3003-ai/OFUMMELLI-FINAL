@@ -102,7 +102,7 @@ class ProductoSeeder extends Seeder
             ['codigo' => 'BEB-008', 'nombre' => 'Batido De Guanábana', 'unidad_medida' => 'vaso', 'precio_venta' => 4.00],
             ['codigo' => 'BEB-009', 'nombre' => 'Batido De Mango', 'unidad_medida' => 'vaso', 'precio_venta' => 4.00],
             ['codigo' => 'BEB-010', 'nombre' => 'Batido De Piña', 'unidad_medida' => 'vaso', 'precio_venta' => 4.00],
-
+            
             // 🥛 Merengadas y Especiales
             ['codigo' => 'MER-001', 'nombre' => 'Toddy', 'unidad_medida' => 'vaso', 'precio_venta' => 5.00],
             ['codigo' => 'MER-002', 'nombre' => 'Cerelac', 'unidad_medida' => 'vaso', 'precio_venta' => 5.00],
@@ -138,6 +138,8 @@ class ProductoSeeder extends Seeder
             ['codigo' => 'EXT-010', 'nombre' => 'Red Bull', 'unidad_medida' => 'unidad', 'precio_venta' => 4.00],
             ['codigo' => 'EXT-011', 'nombre' => 'Monster', 'unidad_medida' => 'unidad', 'precio_venta' => 5.00],
             ['codigo' => 'EXT-012', 'nombre' => 'Refresco De 2L', 'unidad_medida' => 'botella', 'precio_venta' => 4.00],
+            ['codigo' => 'EXT-013', 'nombre' => 'Café', 'unidad_medida' => 'vaso', 'precio_venta' => 3.00],
+            ['codigo' => 'EXT-014', 'nombre' => 'Nestea', 'unidad_medida' => 'vaso', 'precio_venta' => 3.00],
 
             // 🚬 Cigarrillos
             ['codigo' => 'CIG-001', 'nombre' => 'Cigarrillo Belmont', 'unidad_medida' => 'paquete', 'precio_venta' => 4.00],
