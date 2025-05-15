@@ -164,7 +164,8 @@
                             <!-- <option value="debito" {{ $pago['metodo'] == 'debito' ? 'selected' : '' }}>Tarjeta Débito</option> -->
                             <option value="euros" {{ $pago['metodo'] == 'euros' ? 'selected' : '' }}>Euros en Efectivo</option>
                             <option value="cuenta_casa" {{ $pago['metodo'] == 'cuenta_casa' ? 'selected' : '' }}>Cuenta Por la Casa</option>
-                            <option value="propina" {{ $pago['metodo'] == 'propina' ? 'selected' : '' }}>Propina</option>
+                            <option value="propina_divisas" {{ $pago['metodo'] == 'propina_divisas' ? 'selected' : '' }}>Propina (Divisas)</option>
+                            <option value="propina_bolivares" {{ $pago['metodo'] == 'propina_bolivares' ? 'selected' : '' }}>Propina (Bolívares)</option>
                         </select>
                     </div>
 
@@ -250,9 +251,9 @@
                 const metodo = $(this).find('select[name="metodo_pago[]"]').val();
                 const monto = parseFloat($(this).find('input[name="monto_pago[]"]').val()) || 0;
 
-                if (['divisas', 'zelle', 'tarjeta_credito_dolares'].includes(metodo)) {
+                if (['divisas', 'zelle', 'tarjeta_credito_dolares', 'propina_divisas'].includes(metodo)) {
                     totalPagado += monto; // Pagos en dólares
-                } else if (['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'].includes(metodo)) {
+                } else if (['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares', 'propina_bolivares'].includes(metodo)) {
                     totalPagado += monto / (tasaCambio || 1); // Pagos en bolívares
                 }
             });
@@ -271,9 +272,9 @@
                 const metodo = $(this).find('select[name="metodo_pago[]"]').val();
                 const inputMonto = $(this).find('input[name="monto_pago[]"]');
 
-                if (['divisas', 'zelle', 'tarjeta_credito_dolares'].includes(metodo)) {
+                if (['divisas', 'zelle', 'tarjeta_credito_dolares', 'propina_divisas'].includes(metodo)) {
                     inputMonto.attr('placeholder', restanteDolares > 0 ? restanteDolares.toFixed(2) : '0.00');
-                } else if (['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'].includes(metodo)) {
+                } else if (['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares', 'propina_bolivares'].includes(metodo)) {
                     inputMonto.attr('placeholder', restanteBolivares > 0 ? restanteBolivares.toFixed(2) : '0.00');
                 } else {
                     inputMonto.attr('placeholder', '0.00'); // Default placeholder
@@ -311,6 +312,11 @@
                     cuentaPagoMovil.addClass('hidden').hide();
                     bancoPuntoVenta.addClass('hidden').hide();
                     cuentaCasaAutorizado.removeClass('hidden').show();
+                } else if (['propina_divisas', 'propina_bolivares'].includes(metodo)) {
+                    referenciaInput.addClass('hidden').hide().val('');
+                    cuentaPagoMovil.addClass('hidden').hide();
+                    bancoPuntoVenta.addClass('hidden').hide();
+                    cuentaCasaAutorizado.addClass('hidden').hide();
                 } else {
                     referenciaInput.addClass('hidden').hide().val('');
                     cuentaPagoMovil.addClass('hidden').hide();
@@ -362,7 +368,8 @@
                             <option value="bs_efectivo">Bolívares en Efectivo</option>
                             <option value="euros">Euros en Efectivo</option>
                             <option value="cuenta_casa">Cuenta Por la Casa</option>
-                            <option value="propina">Propina</option>
+                            <option value="propina_divisas">Propina (Divisas)</option>
+                            <option value="propina_bolivares">Propina (Bolívares)</option>
                         </select>
                     </div>
                     <div class="col-span-3">
@@ -433,41 +440,6 @@
         calcularRestante();
     });
 
-    // JAVASCRIPT PARA CALCULAR VUELTO
-
-    // $(document).ready(function () {
-    //     // Función para calcular el vuelto
-    //     function calcularVuelto() {
-    //         const totalEstimado = parseFloat($('#total-estimado').text()) || 0;
-    //         let totalPagado = 0;
-
-    //         // Sumar todos los montos ingresados en los métodos de pago
-    //         $('input[name="monto_pago[]"]').each(function () {
-    //             totalPagado += parseFloat($(this).val()) || 0;
-    //         });
-
-    //         const vuelto = totalPagado > totalEstimado ? totalPagado - totalEstimado : 0;
-
-    //         // Actualizar los campos visibles
-    //         $('#total-pagado').text(totalPagado.toFixed(2));
-    //         $('#vuelto').text(vuelto.toFixed(2));
-
-    //         // Actualizar los campos ocultos
-    //         $('#hidden-total-pagado').val(totalPagado.toFixed(2));
-    //         $('#hidden-vuelto').val(vuelto.toFixed(2));
-    //     }
-
-    //     // Recalcular al modificar los montos de pago
-    //     $(document).on('input', 'input[name="monto_pago[]"]', calcularVuelto);
-
-    //     // Ejecutar el cálculo inicial al cargar la página
-    //     calcularVuelto();
-
-    //     // Asegurarse de que los valores se actualicen antes de enviar el formulario
-    //     $('form').on('submit', function (e) {
-    //         calcularVuelto();
-    //     });
-    // });
 </script>
 
  <!-- FIN DE JAVASCRIPT 100% FUNCIONAL -->

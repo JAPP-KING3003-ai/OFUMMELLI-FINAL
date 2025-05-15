@@ -47,26 +47,43 @@
                 <p class="font-bold text-green-400 mb-6">Total Estimado: ${{ number_format($cuenta->total_estimado, 2) }}</p>
 
                 @php
-                    // Cálculo del vuelto considerando las monedas
-                    $totalPagadoEnDolares = 0;
-                    foreach ($cuenta->metodos_pago as $pago) {
-                        $monto = $pago['monto'] ?? 0;
-                        if (in_array($pago['metodo'], ['divisas', 'zelle', 'tarjeta_credito_dolares'])) {
-                            $totalPagadoEnDolares += $monto; // Pagos en dólares
-                        } elseif (in_array($pago['metodo'], ['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'])) {
-                            $totalPagadoEnDolares += $monto / $cuenta->tasa_dia; // Convertir bolívares a dólares
-                        } elseif ($pago['metodo'] === 'euros') {
-                            $totalPagadoEnDolares += $monto * 1.1; // Convertir euros a dólares (tasa fija)
-                        }
-                    }
-                    $vuelto = max(0, $totalPagadoEnDolares - $cuenta->total_estimado);
-                @endphp
+    // Cálculo del total pagado y las propinas por separado
+    $totalPagadoEnDolares = 0;
+    $propinasEnDolares = 0;
+
+    foreach ($cuenta->metodos_pago as $pago) {
+        $monto = $pago['monto'] ?? 0;
+
+        if (in_array($pago['metodo'], ['divisas', 'zelle', 'tarjeta_credito_dolares'])) {
+            $totalPagadoEnDolares += $monto; // Pagos en dólares
+        } elseif (in_array($pago['metodo'], ['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'])) {
+            $totalPagadoEnDolares += $monto / $cuenta->tasa_dia; // Convertir bolívares a dólares
+        } elseif ($pago['metodo'] === 'euros') {
+            $totalPagadoEnDolares += $monto * 1.1; // Convertir euros a dólares (tasa fija)
+        }
+
+        // Separar las propinas
+        if ($pago['metodo'] === 'propina_divisas') {
+            $propinasEnDolares += $monto; // Propinas en dólares
+        } elseif ($pago['metodo'] === 'propina_bolivares') {
+            $propinasEnDolares += $monto / $cuenta->tasa_dia; // Propinas en bolívares convertidas a dólares
+        }
+    }
+
+    // Excluir propinas del cálculo del vuelto
+    $pagosSinPropinas = $totalPagadoEnDolares - $propinasEnDolares; // Total pagado menos propinas
+    $vuelto = max(0, $pagosSinPropinas - $cuenta->total_estimado);
+@endphp
 
                 <div class="mb-4">
                     <p class="text-light-text dark:text-dark-text">
                         <strong>Total Pagado:</strong> ${{ number_format($totalPagadoEnDolares, 2) }}
                     </p>
-                    <br>
+                        <br>
+                    <p class="text-light-text dark:text-dark-text">
+                        <strong>Propinas:</strong> ${{ number_format($propinasEnDolares, 2) }}
+                    </p>
+                        <br>
                     <p class="text-light-danger dark:text-dark-danger">
                         <strong>Vuelto:</strong> ${{ number_format($vuelto, 2) }}
                     </p>
@@ -89,13 +106,14 @@
                                 'debito' => 'Tarjeta Débito',
                                 'euros' => 'Euros en Efectivo',
                                 'cuenta_casa' => 'Cuenta Por la Casa',
-                                'propina' => 'Propina',
+                                'propina_divisas' => 'Propina (Divisas)',
+                                'propina_bolivares' => 'Propina (Bolívares)',
                                 default => 'Método Desconocido',
                             };
 
                             $simbolo = match($pago['metodo']) {
-                                'divisas', 'zelle', 'tarjeta_credito_dolares', 'propina' => '$',
-                                'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares', 'pago_movil' => 'Bs ',
+                                'divisas', 'zelle', 'tarjeta_credito_dolares', 'propina_divisas' => '$',
+                                'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares', 'pago_movil', 'propina_bolivares' => 'Bs ',
                                 'euros' => '€ ',
                                 default => '',
                             };
