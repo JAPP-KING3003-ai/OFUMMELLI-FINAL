@@ -32,14 +32,14 @@
                         </thead>
                         <tbody>
                             @foreach ($cuentas as $cuenta)
-                                <tr class="hover:bg-gray-300 text-light-text dark:text-dark-text border-t dark:border-gray-700">
+                                <tr class="hover:bg-gray-600 text-light-text dark:text-dark-text border-t dark:border-gray-600">
                                     <td class="px-4 py-2">{{ $cuenta->id }}</td>
                                     <td class="px-4 py-2">
                                         {{ $cuenta->cliente_nombre ?? 'No especificado' }}
                                     </td>
                                     <td class="px-4 py-2">{{ $cuenta->responsable_pedido }}</td>
                                     <td class="px-4 py-2">{{ $cuenta->estacion }}</td>
-                                    <td class="px-4 py-2 font-bold text-green-400">${{ number_format($cuenta->total_estimado, 2) }}</td>
+                                    <td class="px-4 py-2 font-bold text-green-600">${{ number_format($cuenta->total_estimado, 2) }}</td>
                                     <td class="px-4 py-2">{{ $cuenta->fecha_apertura->format('d/m/Y h:i A') }}</td>
                                     <td class="px-4 py-2">
                                     <a href="{{ route('cuentas.show', $cuenta) }}"
