@@ -86,8 +86,8 @@
 
                                     <!-- Barrero -->
                     <div class="form-group">
-                        <label for="barrero">Barrero</label>
-                        <input type="text" name="barrero" id="barrero" class="form-control" placeholder="Nombre del barrero">
+                        <label for="barrero" class="block text-sm font-medium text-white mb-1">Nombre del Barrero</label>
+                        <input type="text" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" name="barrero" id="barrero" class="form-control" value="{{ $cuenta->barrero }}" placeholder="Ingrese el nombre del barrero">
                     </div>
 
                 <div>

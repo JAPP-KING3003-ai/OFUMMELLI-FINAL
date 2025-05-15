@@ -36,9 +36,11 @@
 
                     <!-- Barrero -->
                     <div class="form-group">
-                        <label for="barrero">Barrero</label>
-                        <input type="text" name="barrero" id="barrero" class="form-control" placeholder="Nombre del barrero">
+                        <label for="barrero" class="block font-medium text-sm text-light-text dark:text-dark-text">Nombre del Barrero</label>
+                        <input type="text" class="w-full rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text" name="barrero" id="barrero" class="form-control" placeholder="Nombre del barrero">
                     </div>
+
+                    <br>
 
                     <!-- Responsable -->
                     <div class="mb-4">
@@ -99,17 +101,18 @@
                     </div>
 
                     <!-- Métodos de Pago -->
-<div class="mb-4">
-    <label class="block font-medium text-sm text-light-text dark:text-dark-text">Método(s) de Pago</label>
-    <div id="metodos_pago">
-        <!-- Inicialmente vacío -->
-    </div>
-    <button type="button" onclick="agregarMetodoPago()" class="mt-2 bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">+ Agregar Método</button>
-</div>
+                        <div class="mb-4" style="display: none;">
+                            <label class="block font-medium text-sm text-light-text dark:text-dark-text">Método(s) de Pago</label>
+                            <div id="metodos_pago">
+                                <!-- Inicialmente vacío -->
+                            </div>
+                            <button type="button" onclick="agregarMetodoPago()" class="mt-2 bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">+ Agregar Método</button>
+                        </div>
+
                     <!-- Botón -->
-                    <div class="mt-6 text-right">
-                        <button type="submit" class="bg-light-success dark:bg-dark-success text-white px-6 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">Registrar Cuenta</button>
-                    </div>
+                        <div class="mt-6 text-right">
+                            <button type="submit" class="bg-light-success dark:bg-dark-success text-white px-6 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">Registrar Cuenta</button>
+                        </div>
                 </div>
             </form>
         </div>

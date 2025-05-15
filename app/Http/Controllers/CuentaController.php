@@ -85,6 +85,7 @@ class CuentaController extends Controller
         'monto_pago.*'     => 'numeric|min:0',
         'referencia_pago'  => 'nullable|array',
         'tasa_dia'         => 'nullable|numeric|min:0',
+        'barrero'          => 'nullable|string|max:255', // Validar el campo barrero
     ]);
 
     if (empty($request->cliente_id) && empty($request->cliente_nombre)) {
@@ -130,6 +131,8 @@ class CuentaController extends Controller
             'cliente_id'         => $request->cliente_id,
             'cliente_nombre'     => $request->cliente_nombre,
             'usuario_id'         => Auth::id(),
+            'cajera'             => Auth::user()->name, // Guardar el nombre de la cajera logueada
+            'barrero'            => $request->barrero, // Guardar el nombre del barrero
             'responsable_pedido' => $request->responsable,
             'estacion'           => $request->estacion,
             'fecha_apertura'     => $request->fecha_hora,
@@ -228,6 +231,7 @@ class CuentaController extends Controller
         'banco_punto_venta.*' => 'nullable|string',
         'cuenta_casa_autorizado.*' => 'nullable|string',
         'tasa_dia'         => 'nullable|numeric|min:0', // Validar la tasa ingresada
+        'barrero' => 'nullable|string|max:255', // Validar el barrero
     ]);
 
     // Validar que se haya seleccionado un cliente o ingresado un nombre manual
@@ -290,6 +294,7 @@ class CuentaController extends Controller
             'metodos_pago'       => json_encode($metodos_pago_array), // Guardar los métodos de pago
             'total_pagado'       => $totalPagado, // Guardar el total pagado
             'vuelto'             => $vuelto, // Guardar el vuelto calculado
+            'barrero' => $request->barrero, // Actualizar el nombre del barrero
         ]);
 
         // Confirmar la Transacción

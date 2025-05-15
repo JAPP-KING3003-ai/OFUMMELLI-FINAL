@@ -23,6 +23,8 @@ class Cuenta extends Model
         'pagada',
         'tasa_dia',
         'vuelto', // Asegúrate de que este campo esté incluido
+        // 'cajera', // Nuevo campo para la cajera
+        'barrero', // Nuevo campo para el barrero
     ];
 
     protected $casts = [

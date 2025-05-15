@@ -10,7 +10,7 @@
             <div style="color: white;" class="bg-white dark:bg-gray-800 p-6 rounded shadow">
 
                 <!-- Información General -->
-                <p class="mb-2 text-light-text dark:text-dark-text"><strong>Cajera:</strong> {{ $cuenta->cajera }}</p>
+                <p class="mb-2 text-light-text dark:text-dark-text"><strong>Cajera:</strong> {{ Auth::user()->name }}</p>
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Barrero:</strong> {{ $cuenta->barrero }}</p>
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Responsable:</strong> {{ $cuenta->responsable_pedido ?? 'No especificado' }}</p>
                 <p class="mb-2 text-light-text dark:text-dark-text"><strong>Cliente:</strong> {{ $cuenta->cliente_nombre ?? 'No especificado' }}</p>
