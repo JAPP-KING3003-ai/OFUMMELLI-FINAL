@@ -84,6 +84,12 @@
                     <input type="text" name="responsable" id="responsable" value="{{ old('responsable', $cuenta->responsable_pedido) }}" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
 
+                                    <!-- Barrero -->
+                    <div class="form-group">
+                        <label for="barrero">Barrero</label>
+                        <input type="text" name="barrero" id="barrero" class="form-control" placeholder="Nombre del barrero">
+                    </div>
+
                 <div>
                     <label for="estacion" class="block text-sm font-medium text-white mb-1">Estación</label>
                     <input type="text" name="estacion" id="estacion" value="{{ old('estacion', $cuenta->estacion) }}" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">

@@ -50,10 +50,12 @@
                             + Nueva Cuenta
                         </a>
 
-                        {{-- Botón para ver Cuentas Pagadas --}}
-                        <a href="{{ route('cuentas.pagadas') }}" class="bg-indigo-600 text-white px-4 py-2 rounded  hover:bg-indigo-700">
-                            Ver Cuentas Pagadas
-                        </a>
+                        @if (Auth::user()->role === 'Admin')
+                            {{-- Botón para ver Cuentas Pagadas --}}
+                            <a href="{{ route('cuentas.pagadas') }}" class="bg-indigo-600 text-white px-4 py-2 rounded  hover:bg-indigo-700">
+                                Ver Cuentas Pagadas
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -94,6 +96,7 @@
                                             Editar
                                         </a>
 
+                                    @if (Auth::user()->role === 'Admin')
                                         <!-- Botón Eliminar -->
                                         <form action="{{ route('cuentas.destroy', $cuenta) }}" method="POST" class="inline-block"
                                               onsubmit="return confirm('¿Estás seguro de eliminar esta cuenta?');">
@@ -104,6 +107,7 @@
                                                 Eliminar
                                             </button>
                                         </form>
+                                    @endif
                                     </td>
                                 </tr>
                             @endforeach

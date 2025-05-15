@@ -19,6 +19,12 @@ class CuentaController extends Controller
 {
     public function index(Request $request)
     {
+
+        // Validación: Solo Administradores, Supervisores y Cajeros pueden acceder
+        if (!in_array(Auth::user()->role, ['Admin', 'Supervisor', 'Cajero'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
         $search = $request->get('search');
     
         // Consulta para obtener solo las cuentas NO pagadas con búsqueda opcional
@@ -37,6 +43,11 @@ class CuentaController extends Controller
 
     public function create()
     {
+        // Validación: Solo Administradores y Cajeros pueden acceder
+        if (!in_array(Auth::user()->role, ['Admin', 'Cajero'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
         $productos = Producto::orderBy('nombre')->get();
         $clientes = Cliente::all();
 
@@ -55,6 +66,11 @@ class CuentaController extends Controller
 
     public function store(Request $request)
 {
+    // Validación: Solo Administradores y Cajeros pueden almacenar cuentas
+    if (!in_array(Auth::user()->role, ['Admin', 'Cajero'])) {
+        abort(403, 'No tienes permiso para realizar esta acción.');
+    }
+
     $request->validate([
         'cliente_id'       => 'nullable|exists:clientes,id',
         'cliente_nombre'   => 'nullable|string|max:255',
@@ -133,6 +149,11 @@ class CuentaController extends Controller
 
     public function show($id)
     {
+        // Validación: Todos los roles pueden ver cuentas
+        if (!in_array(Auth::user()->role, ['Admin', 'Supervisor', 'Cajero'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
         $cuenta = Cuenta::with('cliente')->findOrFail($id);
 
         $cuenta->productos = json_decode($cuenta->productos, true);
@@ -286,6 +307,11 @@ class CuentaController extends Controller
 
     public function destroy(Cuenta $cuenta)
     {
+        // Validación: Solo Administradores pueden eliminar cuentas
+        if (Auth::user()->role !== 'Admin') {
+            abort(403, 'No tienes permiso para eliminar esta cuenta.');
+        }
+
         $cuenta->delete();
         return redirect()->route('cuentas.index')->with('success', 'Cuenta eliminada correctamente.');
     }

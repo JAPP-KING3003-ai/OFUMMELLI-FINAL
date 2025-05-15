@@ -34,6 +34,12 @@
                         @enderror
                     </div>
 
+                    <!-- Barrero -->
+                    <div class="form-group">
+                        <label for="barrero">Barrero</label>
+                        <input type="text" name="barrero" id="barrero" class="form-control" placeholder="Nombre del barrero">
+                    </div>
+
                     <!-- Responsable -->
                     <div class="mb-4">
                         <label for="responsable" class="block font-medium text-sm text-light-text dark:text-dark-text">Responsable del Pedido</label>

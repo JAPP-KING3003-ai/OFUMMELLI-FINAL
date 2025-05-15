@@ -16,10 +16,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Dashboard (requiere autenticación)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Panel de Control (requiere autenticación)
+Route::get('/Panel de Control', function () {
+    return view('Panel de Control');
+})->middleware(['auth', 'verified'])->name('Panel de Control');
 
 Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas');
 Route::post('/api/tasa-cambio', [DolarPromedioController::class, 'actualizarTasa'])->name('tasa.actualizar');
