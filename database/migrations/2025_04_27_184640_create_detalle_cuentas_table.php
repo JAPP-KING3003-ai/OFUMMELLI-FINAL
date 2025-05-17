@@ -18,6 +18,7 @@ return new class extends Migration
         $table->integer('cantidad')->default(1); // Cantidad de productos pedidos
         $table->decimal('precio_unitario', 10, 2); // Precio individual del producto
         $table->decimal('subtotal', 10, 2); // cantidad * precio_unitario
+        $table->timestamp('printed_at')->nullable(); // Marca de tiempo para impresión
         $table->timestamps();
     });
     }

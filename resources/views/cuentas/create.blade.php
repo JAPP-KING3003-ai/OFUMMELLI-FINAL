@@ -126,7 +126,11 @@
     <!-- JSON de productos -->
     <script id="productos-json" type="application/json">
         {!! json_encode($productos->mapWithKeys(function ($producto) {
-            return [$producto->id => ['nombre' => $producto->nombre, 'precio' => floatval($producto->precio_venta)]];
+            return [$producto->id => [
+                'nombre' => $producto->nombre,
+                'precio' => floatval($producto->precio_venta),
+                'area_id' => $producto->area_id, // Incluir el área del producto
+            ]];
         })) !!}
     </script>
 
@@ -171,39 +175,42 @@
         });
 
         function agregarProducto() {
-            const productoId = $('#producto_select').val();
-            const cantidad = parseInt($('#cantidad_input').val());
+        const productoId = $('#producto_select').val();
+        const cantidad = parseInt($('#cantidad_input').val());
 
-            if (!productoId || cantidad <= 0) return;
+        if (!productoId || cantidad <= 0) return;
 
-            const producto = productosData[productoId];
-            if (!producto) return;
+        const producto = productosData[productoId];
+        if (!producto) return;
 
-            const precio = parseFloat(producto.precio);
-            const subtotal = (precio * cantidad).toFixed(2);
-            totalEstimado += parseFloat(subtotal);
+        const precio = parseFloat(producto.precio);
+        const subtotal = (precio * cantidad).toFixed(2);
+        const areaId = producto.area_id; // Obtener el area_id del producto
 
-            $('#tabla-productos tbody').append(`
-                 <tr>
-                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">
-                        <input type="hidden" name="productos[]" value="${productoId}">
-                        ${producto.nombre}
-                    </td>
-                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">
-                        <input type="number" name="cantidades[]" value="${cantidad}" class="w-16 border rounded bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
-                    </td>
-                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">$${precio.toFixed(2)}</td>
-                    <td class="px-4 py-2 border text-light-text dark:text-dark-text">$${subtotal}</td>
-                    <td class="px-4 py-2 border text-center">
-                        <button type="button" class="bg-light-danger dark:bg-dark-danger text-white px-2 py-1 rounded" onclick="eliminarFila(this, ${subtotal})">Eliminar</button>
-                    </td>
-                </tr>
-            `);
+        totalEstimado += parseFloat(subtotal);
 
-            $('#total').text(`${totalEstimado.toFixed(2)} $`);
-            $('#producto_select').val(null).trigger('change');
-            $('#cantidad_input').val(1);
-        }
+        $('#tabla-productos tbody').append(`
+            <tr>
+                <td class="px-4 py-2 border text-light-text dark:text-dark-text">
+                    <input type="hidden" name="productos[]" value="${productoId}">
+                    <input type="hidden" name="areas[]" value="${areaId}"> <!-- Agregar area_id -->
+                    ${producto.nombre}
+                </td>
+                <td class="px-4 py-2 border text-light-text dark:text-dark-text">
+                    <input type="number" name="cantidades[]" value="${cantidad}" class="w-16 border rounded bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
+                </td>
+                <td class="px-4 py-2 border text-light-text dark:text-dark-text">$${precio.toFixed(2)}</td>
+                <td class="px-4 py-2 border text-light-text dark:text-dark-text">$${subtotal}</td>
+                <td class="px-4 py-2 border text-center">
+                    <button type="button" class="bg-light-danger dark:bg-dark-danger text-white px-2 py-1 rounded" onclick="eliminarFila(this, ${subtotal})">Eliminar</button>
+                </td>
+            </tr>
+        `);
+
+        $('#total').text(`${totalEstimado.toFixed(2)} $`);
+        $('#producto_select').val(null).trigger('change');
+        $('#cantidad_input').val(1);
+    }
 
         function eliminarFila(btn, subtotal) {
             $(btn).closest('tr').remove();

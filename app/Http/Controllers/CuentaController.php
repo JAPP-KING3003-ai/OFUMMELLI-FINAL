@@ -42,30 +42,34 @@ class CuentaController extends Controller
 
 
     public function create()
-    {
-        // Validación: Solo Administradores y Cajeros pueden acceder
-        if (!in_array(Auth::user()->role, ['Admin', 'Cajero'])) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
-        }
-
-        $productos = Producto::orderBy('nombre')->get();
-        $clientes = Cliente::all();
-
-        // Obtener la tasa de cambio actual desde la configuración global (si existe)
-        $tasaActual = DB::table('config')->where('key', 'tasa_cambio')->value('value') ?? null;
-
-        $productosJS = $productos->mapWithKeys(function ($producto) {
-            return [$producto->id => [
-                'nombre' => $producto->nombre,
-                'precio' => (float) $producto->precio_venta,
-            ]];
-        });
-
-        return view('cuentas.create', compact('productos', 'productosJS', 'clientes', 'tasaActual'));
+{
+    // Validación: Solo Administradores y Cajeros pueden acceder
+    if (!in_array(Auth::user()->role, ['Admin', 'Cajero'])) {
+        abort(403, 'No tienes permiso para acceder a esta sección.');
     }
 
-    public function store(Request $request)
+    $productos = Producto::orderBy('nombre')->get();
+    $clientes = Cliente::all();
+
+    // Obtener la tasa de cambio actual desde la configuración global (si existe)
+    $tasaActual = DB::table('config')->where('key', 'tasa_cambio')->value('value') ?? null;
+
+    // Incluir el área (area_id) en los detalles de los productos enviados al frontend
+    $productosJS = $productos->mapWithKeys(function ($producto) {
+        return [$producto->id => [
+            'nombre' => $producto->nombre,
+            'precio' => (float) $producto->precio_venta,
+            'area_id' => $producto->area_id, // Incluir el area_id
+        ]];
+    });
+
+    return view('cuentas.create', compact('productos', 'productosJS', 'clientes', 'tasaActual'));
+}
+
+public function store(Request $request)
 {
+    // dd($request->all());
+    
     // Validación: Solo Administradores y Cajeros pueden almacenar cuentas
     if (!in_array(Auth::user()->role, ['Admin', 'Cajero'])) {
         abort(403, 'No tienes permiso para realizar esta acción.');
@@ -101,15 +105,19 @@ class CuentaController extends Controller
         $total = 0;
 
         foreach ($request->productos as $index => $producto_id) {
-            $producto = Producto::findOrFail($producto_id);
+            $producto = Producto::select('id', 'nombre', 'precio_venta', 'area_id')->findOrFail($producto_id);
             $cantidad = $request->cantidades[$index] ?? 1;
             $subtotal = $producto->precio_venta * $cantidad;
+
+            // Utilizar el area_id del producto recibido o el área desde la base de datos
+            $area_id = $request->areas[$index];
 
             $productos_array[] = [
                 'producto_id' => $producto_id,
                 'cantidad'    => $cantidad,
                 'precio'      => $producto->precio_venta,
-                'subtotal'    => $subtotal
+                'subtotal'    => $subtotal,
+                'area_id'     => $area_id, // Asegurar que el área asociada se incluye
             ];
 
             $total += $subtotal;
@@ -137,8 +145,8 @@ class CuentaController extends Controller
             'estacion'           => $request->estacion,
             'fecha_apertura'     => $request->fecha_hora,
             'total_estimado'     => $total,
-            'productos'          => json_encode($productos_array),
-            'metodos_pago'       => json_encode($metodos_pago_array),
+            'productos'          => json_encode($productos_array), // Guardar productos como JSON
+            'metodos_pago'       => json_encode($metodos_pago_array), // Guardar métodos de pago como JSON
             'tasa_dia'           => $request->tasa_dia ?? 1,
         ]);
 
@@ -184,7 +192,17 @@ class CuentaController extends Controller
     $productos = Producto::orderBy('nombre')->get();
 
     // Decodificar los productos seleccionados almacenados en la cuenta
-    $productosSeleccionados = json_decode($cuenta->productos, true) ?? [];
+     $productosSeleccionados = collect(json_decode($cuenta->productos, true) ?? [])
+        ->map(function ($producto) {
+            return [
+                'producto_id' => $producto['producto_id'],
+                'cantidad' => $producto['cantidad'],
+                'area_id' => $producto['area_id'] ?? null, // Asegurarse de que "area_id" esté definido
+                'printed_at' => $producto['printed_at'] ?? null,
+            ];
+        })
+        ->toArray();
+
     $metodosPago = json_decode($cuenta->metodos_pago, true) ?? [];
 
     // Obtener la tasa de cambio actual
@@ -207,12 +225,39 @@ class CuentaController extends Controller
         'metodosPago',
         'tasaActual'
     ));
+
+    $cuenta = Cuenta::with(['productos' => function ($query) {
+        $query->select('id', 'nombre', 'area_id', 'printed_at'); // Asegúrate de incluir printed_at
+    }])->findOrFail($id);
+
+    return view('cuentas.edit', compact('cuenta', 'productos', 'productosSeleccionados'));
 }
+
     public function update(Request $request, Cuenta $cuenta)
 {
 
     // Validaciones del Request
     $request->validate([
+        // 'cliente_id'       => 'nullable|exists:clientes,id',
+        // 'cliente_nombre'   => 'nullable|string|max:255',
+        // 'responsable'      => 'nullable|string|max:255',
+        // 'estacion'         => 'required|string|max:255',
+        // 'fecha_hora'       => 'required|date',
+        // 'productos'        => 'required|array',
+        // 'productos.*'      => 'exists:productos,id',
+        // 'cantidades'       => 'required|array',
+        // 'cantidades.*'     => 'numeric|min:1',
+        // 'metodo_pago'      => 'required|array',
+        // 'monto_pago.*'     => 'numeric|min:0', // Validar cada monto como número decimal
+        // 'referencia_pago'  => 'nullable|array',
+        // 'total_pagado'     => 'nullable|numeric|min:0', // Validar que total_pagado sea un número válido
+        // 'vuelto'           => 'nullable|numeric|min:0', // Validar que vuelto sea un número válido
+        // 'cuenta_pago_movil.*' => 'nullable|string',
+        // 'banco_punto_venta.*' => 'nullable|string',
+        // 'cuenta_casa_autorizado.*' => 'nullable|string',
+        // 'tasa_dia'         => 'nullable|numeric|min:0', // Validar la tasa ingresada
+        // 'barrero' => 'nullable|string|max:255', // Validar el barrero
+
         'cliente_id'       => 'nullable|exists:clientes,id',
         'cliente_nombre'   => 'nullable|string|max:255',
         'responsable'      => 'nullable|string|max:255',
@@ -222,16 +267,20 @@ class CuentaController extends Controller
         'productos.*'      => 'exists:productos,id',
         'cantidades'       => 'required|array',
         'cantidades.*'     => 'numeric|min:1',
-        'metodo_pago'      => 'required|array',
-        'monto_pago.*'     => 'numeric|min:0', // Validar cada monto como número decimal
+        'areas'            => 'required|array',
+        'areas.*'          => 'nullable|string',
+        // Métodos de pago ya no son obligatorios
+        'metodo_pago'      => 'nullable|array',
+        'monto_pago.*'     => 'nullable|numeric|min:0',
         'referencia_pago'  => 'nullable|array',
-        'total_pagado'     => 'nullable|numeric|min:0', // Validar que total_pagado sea un número válido
-        'vuelto'           => 'nullable|numeric|min:0', // Validar que vuelto sea un número válido
+        'total_pagado'     => 'nullable|numeric|min:0',
+        'vuelto'           => 'nullable|numeric|min:0',
+        'tasa_dia'         => 'nullable|numeric|min:0',
+        'barrero'          => 'nullable|string|max:255',
         'cuenta_pago_movil.*' => 'nullable|string',
         'banco_punto_venta.*' => 'nullable|string',
         'cuenta_casa_autorizado.*' => 'nullable|string',
-        'tasa_dia'         => 'nullable|numeric|min:0', // Validar la tasa ingresada
-        'barrero' => 'nullable|string|max:255', // Validar el barrero
+
     ]);
 
     // Validar que se haya seleccionado un cliente o ingresado un nombre manual
@@ -245,6 +294,13 @@ class CuentaController extends Controller
     DB::beginTransaction();
 
     try {
+
+
+        // Decodificar los productos existentes
+        $productosExistentes = json_decode($cuenta->productos, true) ?? [];
+        $productosExistentesIndexed = collect($productosExistentes)->keyBy('producto_id');
+
+
         // Calcular el Total Estimado de la Cuenta
         $totalEstimado = 0; // Inicializar el total estimado
         $productos_array = []; // Arreglo para almacenar los productos procesados
@@ -252,17 +308,23 @@ class CuentaController extends Controller
         foreach ($request->productos as $index => $producto_id) {
             $producto = Producto::findOrFail($producto_id);
             $cantidad = $request->cantidades[$index] ?? 1; // Cantidad del producto
+            $area_id = $request->areas[$index] ?? $producto->area_id; // Usar el área desde el formulario o la base de datos
             $subtotal = $producto->precio_venta * $cantidad; // Subtotal del producto
 
             $productos_array[] = [
                 'producto_id' => $producto_id,
+                'nombre'      => $producto->nombre, // Incluir el nombre del producto
                 'cantidad'    => $cantidad,
                 'precio'      => $producto->precio_venta,
-                'subtotal'    => $subtotal
+                'subtotal'    => $subtotal,
+                'area_id'     => $area_id, // Incluir el área
+                'printed_at'  => $request->printed_at[$index] ?? $productosExistentesIndexed[$producto_id]['printed_at'] ?? null, // Conservar el estado de impresión
             ];
 
             $totalEstimado += $subtotal; // Acumular el subtotal en el total estimado
         }
+
+        // Luego, guarda los productos como JSON en la cuenta
 
         // Calcular el Total Pagado y el Vuelto
         $totalPagado = array_sum($request->monto_pago ?? []); // Sumar todos los montos de métodos de pago
@@ -270,10 +332,11 @@ class CuentaController extends Controller
 
         // Procesar los Métodos de Pago
         $metodos_pago_array = [];
-        foreach ($request->metodo_pago as $index => $metodo) {
+        $metodo_pago = $request->metodo_pago ?? []; // Asegurar que sea un array
+        foreach ($metodo_pago as $index => $metodo) {
             $metodos_pago_array[] = [
                 'metodo'     => $metodo,
-                'monto'      => number_format((float) $request->monto_pago[$index], 2, '.', ''), // Formatear como decimal
+                'monto'      => number_format((float) ($request->monto_pago[$index] ?? 0), 2, '.', ''), // Formatear como decimal
                 'referencia' => $request->referencia_pago[$index] ?? null,
                 'cuenta'     => $request->cuenta_pago_movil[$index] ?? null, // Para Pago Móvil
                 'banco'      => $request->banco_punto_venta[$index] ?? null, // Para Punto de Venta
@@ -291,7 +354,7 @@ class CuentaController extends Controller
             'total_estimado'     => $totalEstimado, // Actualizar el total estimado
             'tasa_dia'           => $request->tasa_dia ?? $cuenta->tasa_dia, // Usar la tasa enviada o la existente
             'productos'          => json_encode($productos_array), // Guardar los productos seleccionados
-            'metodos_pago'       => json_encode($metodos_pago_array), // Guardar los métodos de pago
+            'metodos_pago'       => !empty($metodos_pago_array) ? json_encode($metodos_pago_array) : null, // Guardar los métodos de pago
             'total_pagado'       => $totalPagado, // Guardar el total pagado
             'vuelto'             => $vuelto, // Guardar el vuelto calculado
             'barrero' => $request->barrero, // Actualizar el nombre del barrero
@@ -299,6 +362,7 @@ class CuentaController extends Controller
 
         // Confirmar la Transacción
         DB::commit();
+        
 
         // Redirigir al índice de cuentas con mensaje de éxito
         return redirect()->route('cuentas.index')

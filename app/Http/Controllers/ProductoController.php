@@ -35,6 +35,7 @@ class ProductoController extends Controller
             'nombre' => 'required|string|max:255',
             'unidad_medida' => 'required|string|max:50',
             'precio_venta' => 'required|numeric|min:0',
+            'area_id' => 'nullable|integer|exists:areas,id', // Validar que el área exista en la tabla 'areas'
         ]);
 
         // Creamos el producto
@@ -62,6 +63,7 @@ class ProductoController extends Controller
             'codigo' => 'required|string|max:255|unique:productos,codigo,' . $id,
             'nombre' => 'required|string|max:255',
             'precio_venta' => 'required|numeric|min:0',
+            'area_id' => 'nullable|integer|exists:areas,id', // Validar que el área exista en la tabla 'areas'
         ]);
 
         $producto = Producto::findOrFail($id);

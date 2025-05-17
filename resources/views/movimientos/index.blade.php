@@ -54,12 +54,13 @@
                     </div>
                 </form>
 
-                <!-- TABLA -->
+                <!-- TABLA DE MOVIMIENTOS -->
                 <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                     <thead>
                         <tr class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
                             <th class="py-2 px-4 border-b dark:border-gray-600">Producto</th>
-                            <th class="py-2 px-4 border-b dark:border-gray-600">Cantidad Agregada</th>
+                            <th class="py-2 px-4 border-b dark:border-gray-600">Tipo de Movimiento</th>
+                            <th class="py-2 px-4 border-b dark:border-gray-600">Cantidad</th>
                             <th class="py-2 px-4 border-b dark:border-gray-600">Fecha y Hora</th>
                         </tr>
                     </thead>
@@ -67,12 +68,13 @@
                         @forelse ($movimientos as $movimiento)
                             <tr class="hover:bg-gray-300 dark:hover:bg-gray-600 text-white">
                                 <td class="py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->inventario->producto->nombre ?? '-' }}</td>
+                                <td class="py-2 px-4 border-b dark:border-gray-600">{{ ucfirst($movimiento->tipo ?? 'N/A') }}</td>
                                 <td class="py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->cantidad ?? '-' }}</td>
                                 <td class="py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->created_at->format('d/m/Y H:i') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="4" class="py-4 text-center text-gray-500 dark:text-gray-400">
                                     No hay movimientos encontrados para los filtros seleccionados.
                                 </td>
                             </tr>

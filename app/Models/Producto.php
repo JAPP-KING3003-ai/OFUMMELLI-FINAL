@@ -16,6 +16,7 @@ class Producto extends Model
         'nombre',
         'unidad_medida',
         'precio_venta', // ✅ Este es el campo correcto que usas en tu Seeder
+        'area_id',
     ];
 
     /**

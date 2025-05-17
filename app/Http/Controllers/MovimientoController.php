@@ -12,7 +12,7 @@ class MovimientoController extends Controller
     {
         $query = Movimiento::with('inventario.producto')->orderBy('created_at', 'desc');
 
-        // ✅ Filtrar por fecha
+        // Filtrar por fecha
         if ($request->filled('fecha_inicio')) {
             $query->whereDate('created_at', '>=', $request->fecha_inicio);
         }
@@ -20,7 +20,7 @@ class MovimientoController extends Controller
             $query->whereDate('created_at', '<=', $request->fecha_fin);
         }
 
-        // ✅ Filtrar por varios productos
+        // Filtrar por varios productos
         if ($request->filled('producto_id')) {
             $productoIds = $request->producto_id;
             $query->whereHas('inventario', function ($q) use ($productoIds) {
@@ -28,9 +28,9 @@ class MovimientoController extends Controller
             });
         }
 
-        $movimientos = $query->paginate(10)->withQueryString(); // ✅ Paginación + mantener filtros
+        $movimientos = $query->paginate(10)->withQueryString(); // Paginación con filtros
 
-        $productos = Producto::orderBy('nombre')->get(); // ✅ Productos ordenados
+        $productos = Producto::orderBy('nombre')->get(); // Listar productos
 
         return view('movimientos.index', compact('movimientos', 'productos'));
     }

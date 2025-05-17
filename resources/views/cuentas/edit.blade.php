@@ -25,26 +25,6 @@
             </div>
         @endif
 
-            <!-- <form method="POST" action="{{ route('tasa.actualizar') }}" class="mb-4">
-    @csrf
-    <div class="flex items-center gap-2">
-        <label for="tasa_dia" class="block font-medium text-sm text-light-text dark:text-dark-text">
-            Tasa de Cambio Actual:
-        </label>
-        <input
-            type="number"
-            step="0.01"
-            name="tasa_dia"
-            id="tasa_dia"
-            value="{{ old('tasa_dia', $tasaActual ?? 0) }}"
-            class="w-32 rounded-md border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text"
-        >
-        <button type="submit" class="bg-light-primary dark:bg-dark-primary text-white px-4 py-2 rounded hover:bg-light-hover dark:hover:bg-dark-hover">
-            Actualizar Tasa
-        </button>
-    </div>
-</form> -->
-
     @if (session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
             <strong class="font-bold">¡Éxito!</strong>
@@ -101,30 +81,85 @@
                 </div>
             </div>
 
-            <!-- Productos -->
+              <!-- Productos -->
             <div>
                 <label class="block text-sm font-medium text-white mb-2">Productos</label>
                 <div id="productos-container" class="space-y-4">
-                    @foreach ($productosSeleccionados as $producto)
-                        <div class="grid grid-cols-12 gap-4 producto-item "> 
-                            <div class="col-span-6">
-                                <select name="productos[]" class="producto-select w-full border-gray-300 rounded-md">
-                                    @foreach ($productos as $item)
-                                        <option value="{{ $item->id }}" {{ $producto['producto_id'] == $item->id ? 'selected' : '' }}>{{ $item->nombre }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-span-4">
-                                <input type="number" name="cantidades[]" value="{{ $producto['cantidad'] }}" min="1" class="w-full border-gray-300 rounded-md">
-                            </div>
-                            <div class="col-span-2">
-                                <button type="button" class="remove-producto w-full bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600">Eliminar</button>
-                            </div>
-                        </div>
+    @foreach ($productosSeleccionados as $producto)
+        <div class="grid grid-cols-12 gap-4 producto-item">
+            <div class="col-span-6">
+                <select name="productos[]" class="w-full border-gray-300 rounded-md" step="0.01">
+                    @foreach ($productos as $item)
+                        <option value="{{ $item->id }}" {{ $producto['producto_id'] == $item->id ? 'selected' : '' }}>
+                            {{ $item->nombre }}
+                        </option>
                     @endforeach
-                </div>
-                <button type="button" id="agregar-producto" class="mt-3 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">+ Agregar Producto</button>
+                </select>
+                <input type="hidden" name="areas[]" value="{{ $producto['area_id'] ?? 'sin-area' }}"> <!-- Incluir el área -->
             </div>
+            <div class="col-span-4">
+                <input type="number" name="cantidades[]" value="{{ $producto['cantidad'] }}" min="1" class="w-full border-gray-300 rounded-md">
+            </div>
+
+            <!-- BOTON DE IMPRIMIR FUNCIONAL -->
+
+                <!-- <div class="col-span-2 flex items-center space-x-2">
+                    <button type="button"
+                            class="imprimir-producto w-full bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                            data-producto-id="{{ $producto['producto_id'] }}"
+                            data-area-id="{{ $producto['area_id'] }}"
+                            {{ isset($producto['printed_at']) && $producto['printed_at'] ? 'disabled' : '' }}>
+                        {{ isset($producto['printed_at']) && $producto['printed_at'] ? 'Ya Impreso' : 'Imprimir' }}
+                    </button>
+                    <span id="impreso-indicador-{{ $producto['producto_id'] }}" 
+                        class="{{ isset($producto['printed_at']) && $producto['printed_at'] ? '' : 'hidden' }} text-green-500 font-bold">
+                        Impreso
+                    </span>
+                </div> -->
+                
+            <!-- FIN DEL BOTON DE IMPRIMIR FUNCIONAL -->
+
+            <!-- CAMPO DE PRUEBA PARA BOTON DE IMPRIMIR -->
+
+<div class="col-span-2 flex items-center space-x-2">
+    <button type="button"
+            class="imprimir-producto w-full bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+            data-producto-id="{{ $producto['producto_id'] }}"
+            data-area-id="{{ $producto['area_id'] ?? 'sin-area' }}"
+            {{ isset($producto['printed_at']) && $producto['printed_at'] ? 'disabled' : '' }}>
+        {{ isset($producto['printed_at']) && $producto['printed_at'] ? 'Ya Impreso' : 'Imprimir' }}
+    </button>
+    <span id="impreso-indicador-{{ $producto['producto_id'] }}" 
+          class="{{ isset($producto['printed_at']) && $producto['printed_at'] ? '' : 'hidden' }} text-green-500 font-bold">
+          Impreso
+    </span>
+</div>
+
+            @if (session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <strong class="font-bold">¡Éxito!</strong>
+        <span class="block sm:inline">{{ session('success') }}</span>
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <strong class="font-bold">Error:</strong>
+        <span class="block sm:inline">{{ session('error') }}</span>
+    </div>
+@endif
+
+            <!-- FIN DEL CAMPO DE PRUEBA PARA BOTON DE IMPRIMIR -->
+
+            <div class="col-span-2">
+                <button type="button" class="remove-producto w-full bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+            </div>
+        </div>
+    @endforeach
+</div>
+
+                <button type="button" id="agregar-producto" class="mt-3 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">+ Agregar Producto</button>
+
 
             <p class="text-green-600 font-bold  mb-6">
                 Total Estimado: $<span id="total-estimado">{{ number_format($cuenta->total_estimado, 2) }}</span>
@@ -230,6 +265,8 @@
 <!-- Campos ocultos para enviar total_pagado y vuelto -->
 <input type="hidden" name="total_pagado" id="hidden-total-pagado" value="0.00">
 <input type="hidden" name="vuelto" id="hidden-vuelto" value="0.00">
+<input type="hidden" name="printed_at[]" value="{{ $producto['printed_at'] ?? '' }}">
+
 
 <!-- JAVASCRIPT 100% FUNCIONAL -->
 
@@ -351,6 +388,7 @@
                 width: '100%'
             });
         }
+        
 
         // Función para agregar un nuevo método de pago dinámicamente
         function agregarMetodoPago() {
@@ -492,5 +530,48 @@
         });
     });
 </script>
+
+<!-- ESTE SCRIPT ES EL MÁS FUNCIONAL PARA IMPRIMIR LOS TICKETS -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const imprimirBotones = document.querySelectorAll('.imprimir-producto');
+
+    imprimirBotones.forEach(boton => {
+        boton.addEventListener('click', function () {
+            const productoId = this.getAttribute('data-producto-id'); // ID del producto
+            const cuentaId = "{{ $cuenta->id }}"; // ID de la cuenta actual
+            const botonImprimir = this; // Referencia al botón que se hizo clic
+
+            // Realizar la solicitud AJAX para imprimir
+            fetch(`/cuentas/${cuentaId}/imprimir-producto/${productoId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Actualizar el botón para indicar que ya ha sido impreso
+                        botonImprimir.disabled = true;
+                        botonImprimir.textContent = 'Ya Impreso';
+                        botonImprimir.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                        botonImprimir.classList.add('bg-gray-400', 'cursor-not-allowed');
+                    } else {
+                        alert(`Error al imprimir: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al imprimir:', error);
+                    alert('Ocurrió un error al intentar imprimir el ticket.');
+                });
+        });
+    });
+    });
+</script>
+
+<!-- FIN DEL SCRIPT ES EL MÁS FUNCIONAL PARA IMPRIMIR LOS TICKETS -->
 
 @endsection

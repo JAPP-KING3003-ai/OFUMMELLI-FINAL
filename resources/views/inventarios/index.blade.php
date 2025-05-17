@@ -15,6 +15,12 @@
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por nombre o código..." class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buscar</button>
                     </form>
+
+                <!-- Botón Nuevo Producto -->
+                        <a href="{{ route('inventarios.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                            Nuevo Producto
+                        </a>
+
                     <a href="{{ route('inventarios.exportar') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                         Exportar a Excel
                     </a>
@@ -51,6 +57,15 @@
                                         <a href="{{ route('inventarios.edit', $inventario->id) }}" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
                                             Editar
                                         </a>
+
+                                        <!-- BOTÓN ELIMINAR -->
+                                        <form action="{{ route('inventarios.destroy', $inventario->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este producto del inventario?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                                                Eliminar
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             @empty

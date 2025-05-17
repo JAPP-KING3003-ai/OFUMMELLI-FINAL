@@ -32,6 +32,8 @@ class Cuenta extends Model
         'metodos_pago'  => 'array',
         'fecha_apertura'=> 'datetime',
         'fecha_cierre'  => 'datetime',
+        'productos' => 'array', // Verifica si esta línea existe
+
     ];
 
     // 🔗 Relación con Cliente
@@ -45,4 +47,9 @@ class Cuenta extends Model
     {
         return $this->belongsTo(User::class, 'usuario_id');
     }
+
+    protected $table = 'cuentas';
+
+    
+
 }

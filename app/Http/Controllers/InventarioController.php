@@ -178,4 +178,51 @@ public function update(Request $request, $id)
     // Redirigir con un mensaje de éxito
     return redirect()->route('inventarios.index')->with('success', 'Inventario actualizado con éxito.');
 }
+
+public function destroy($id)
+{
+    $inventario = Inventario::findOrFail($id);
+
+    // Eliminar el inventario y su producto asociado
+    $producto = $inventario->producto;
+    $inventario->delete();
+    $producto->delete();
+
+    return redirect()->route('inventarios.index')->with('success', 'Producto eliminado del inventario exitosamente.');
+}
+
+public function create()
+{
+    return view('inventarios.create'); // Asegúrate de que la vista 'inventarios.create' exista
+}
+
+public function store(Request $request)
+{
+    // Validar los datos enviados desde el formulario
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'codigo' => 'required|string|max:255|unique:productos,codigo',
+        'cantidad_inicial' => 'required|integer|min:0',
+        'precio_costo' => 'required|numeric|min:0',
+        'unidad_medida' => 'required|string|max:255', // Validar unidad de medida
+    ]);
+
+    // Crear un nuevo producto
+    $producto = \App\Models\Producto::create([
+        'nombre' => $request->nombre,
+        'codigo' => $request->codigo,
+        'unidad_medida' => $request->unidad_medida, // Guardar unidad de medida
+    ]);
+
+    // Crear un nuevo registro en el inventario vinculado al producto
+    \App\Models\Inventario::create([
+        'producto_id' => $producto->id,
+        'cantidad_inicial' => $request->cantidad_inicial,
+        'cantidad_actual' => $request->cantidad_inicial,
+        'precio_costo' => $request->precio_costo,
+    ]);
+
+    // Redirigir al listado de inventario con un mensaje de éxito
+    return redirect()->route('inventarios.index')->with('success', 'Producto agregado al inventario correctamente.');
+}
 }
