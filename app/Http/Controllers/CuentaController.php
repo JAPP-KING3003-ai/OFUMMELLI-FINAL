@@ -193,8 +193,9 @@ public function store(Request $request)
 
     // Decodificar los productos seleccionados almacenados en la cuenta
      $productosSeleccionados = collect(json_decode($cuenta->productos, true) ?? [])
-        ->map(function ($producto) {
+        ->map(function ($producto, $index) {
             return [
+                'id_unico'    => $index, // Identificador único basado en el índice
                 'producto_id' => $producto['producto_id'],
                 'cantidad' => $producto['cantidad'],
                 'area_id' => $producto['area_id'] ?? null, // Asegurarse de que "area_id" esté definido

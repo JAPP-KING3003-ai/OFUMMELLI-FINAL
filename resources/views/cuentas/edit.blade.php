@@ -121,7 +121,7 @@
 
             <!-- CAMPO DE PRUEBA PARA BOTON DE IMPRIMIR -->
 
-<div class="col-span-2 flex items-center space-x-2">
+<!-- <div class="col-span-2 flex items-center space-x-2">
     <button type="button"
             class="imprimir-producto w-full bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
             data-producto-id="{{ $producto['producto_id'] }}"
@@ -130,6 +130,20 @@
         {{ isset($producto['printed_at']) && $producto['printed_at'] ? 'Ya Impreso' : 'Imprimir' }}
     </button>
     <span id="impreso-indicador-{{ $producto['producto_id'] }}" 
+          class="{{ isset($producto['printed_at']) && $producto['printed_at'] ? '' : 'hidden' }} text-green-500 font-bold">
+          Impreso
+    </span>
+</div> -->
+
+<div class="col-span-2 flex items-center space-x-2">
+    <button type="button"
+            class="imprimir-producto w-full bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+            data-id-unico="{{ $producto['id_unico'] }}"
+            data-producto-id="{{ $producto['producto_id'] }}"
+            {{ isset($producto['printed_at']) && $producto['printed_at'] ? 'disabled' : '' }}>
+        {{ isset($producto['printed_at']) && $producto['printed_at'] ? 'Ya Impreso' : 'Imprimir' }}
+    </button>
+    <span id="impreso-indicador-{{ $producto['id_unico'] }}" 
           class="{{ isset($producto['printed_at']) && $producto['printed_at'] ? '' : 'hidden' }} text-green-500 font-bold">
           Impreso
     </span>
@@ -539,12 +553,13 @@
 
     imprimirBotones.forEach(boton => {
         boton.addEventListener('click', function () {
+            const idUnico = this.getAttribute('data-id-unico'); // Identificador único
             const productoId = this.getAttribute('data-producto-id'); // ID del producto
             const cuentaId = "{{ $cuenta->id }}"; // ID de la cuenta actual
             const botonImprimir = this; // Referencia al botón que se hizo clic
 
             // Realizar la solicitud AJAX para imprimir
-            fetch(`/cuentas/${cuentaId}/imprimir-producto/${productoId}`, {
+           fetch(`/cuentas/${cuentaId}/imprimir-producto/${productoId}/${idUnico}`, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
@@ -559,6 +574,12 @@
                         botonImprimir.textContent = 'Ya Impreso';
                         botonImprimir.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                         botonImprimir.classList.add('bg-gray-400', 'cursor-not-allowed');
+
+                        // Mostrar el indicador de "Impreso"
+                        const indicador = document.getElementById(`impreso-indicador-${idUnico}`);
+                        if (indicador) {
+                            indicador.classList.remove('hidden');
+                        }
                     } else {
                         alert(`Error al imprimir: ${data.error}`);
                     }

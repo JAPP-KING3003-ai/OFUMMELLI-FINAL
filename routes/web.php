@@ -34,6 +34,9 @@ Route::post('/cuentas/producto/imprimir', [TicketController::class, 'imprimirPro
 Route::get('/cuentas/{cuenta}/imprimir/{area}', [TicketController::class, 'imprimirTicket'])->name('cuentas.imprimir');
 Route::get('/cuentas/{cuenta}/imprimir-producto/{productoId}', [TicketController::class, 'imprimirProducto'])->name('cuentas.imprimir-producto');
 Route::post('/productos/marcar-impreso', [TicketController::class, 'marcarProductoImpreso']);
+Route::get('/cuentas/{cuenta}/imprimir-linea/{lineId}', [TicketController::class, 'imprimirLinea'])->name('cuentas.imprimir-linea');
+Route::get('/cuentas/{cuenta}/imprimir-producto/{productoId}/{idUnico}', [TicketController::class, 'imprimirProducto'])
+    ->name('cuentas.imprimir-producto');
 
 
 

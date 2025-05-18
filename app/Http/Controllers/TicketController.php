@@ -9,7 +9,7 @@ use App\Models\DetalleCuenta;
 
 class TicketController extends Controller
 {
-public function imprimirProducto(Cuenta $cuenta, $productoId)
+public function imprimirProducto(Cuenta $cuenta, $productoId, $idUnico)
 {
     // Decodificar los productos si están en formato JSON
     $productos = is_string($cuenta->productos)
@@ -18,14 +18,14 @@ public function imprimirProducto(Cuenta $cuenta, $productoId)
 
     // Buscar el índice del producto específico
     $productoKey = array_search($productoId, array_column($productos, 'producto_id'));
-    if ($productoKey === false) {
+    if (!isset($productos[$idUnico]) || $productos[$idUnico]['producto_id'] != $productoId) {
         return response()->json(['error' => 'No se encontró el producto.'], 404);
     }
 
-    $producto = $productos[$productoKey];
+    $producto = $productos[$idUnico];
 
     // Marcar el producto como impreso
-    $productos[$productoKey]['printed_at'] = now()->toDateTimeString();
+     $productos[$idUnico]['printed_at'] = now()->toDateTimeString();
     $cuenta->productos = json_encode($productos);
     $cuenta->save();
 
