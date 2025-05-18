@@ -9,6 +9,16 @@
         <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
 
+            @if ($errors->any())
+    <div class="mb-4">
+        <ul class="list-disc list-inside text-red-600">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
                 <form action="{{ route('inventarios.store') }}" method="POST">
                     @csrf
 
@@ -23,7 +33,8 @@
                     <div class="mb-4">
                         <label for="codigo" class="block text-gray-800 dark:text-gray-200">Código:</label>
                         <input type="text" name="codigo" id="codigo" value="{{ old('codigo') }}" required
-                               class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
+                            class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
+                        <small class="text-gray-500">Si estás registrando un nuevo lote del mismo producto, usa <strong>#</strong> al inicio del código (por ejemplo: #CAF-001).</small>
                     </div>
 
                     <!-- Cantidad Inicial -->

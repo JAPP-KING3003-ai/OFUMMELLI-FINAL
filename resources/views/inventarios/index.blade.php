@@ -87,4 +87,10 @@
             </div>
         </div>
     </div>
+
+    @if (session('success'))
+    <div class="mb-4 text-green-600">
+        {{ session('success') }}
+    </div>
+@endif
 </x-app-layout>

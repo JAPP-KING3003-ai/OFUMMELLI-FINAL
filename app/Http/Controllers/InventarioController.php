@@ -207,6 +207,15 @@ public function store(Request $request)
         'unidad_medida' => 'required|string|max:255', // Validar unidad de medida
     ]);
 
+     // Generar el nuevo código con un prefijo `#`
+    $codigo = '#' . $request->codigo;
+
+        $request->validate([
+        'codigo' => 'required|string|max:255|unique:productos,codigo',
+    ], [
+        'codigo.unique' => 'El código ya está registrado. Por favor, usa un código diferente.',
+    ]);
+
     // Crear un nuevo producto
     $producto = \App\Models\Producto::create([
         'nombre' => $request->nombre,
@@ -224,5 +233,12 @@ public function store(Request $request)
 
     // Redirigir al listado de inventario con un mensaje de éxito
     return redirect()->route('inventarios.index')->with('success', 'Producto agregado al inventario correctamente.');
+}
+
+public function show($id)
+{
+    $producto = \App\Models\Producto::with('lotes')->findOrFail($id);
+
+    return view('inventarios.show', compact('producto'));
 }
 }

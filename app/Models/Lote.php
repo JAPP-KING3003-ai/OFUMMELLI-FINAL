@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Inventario extends Model
+class Lote extends Model
 {
-        protected $fillable = [
-        'producto_id',      // Añadir este campo
+    protected $fillable = [
+        'producto_id',
         'cantidad_inicial',
         'cantidad_actual',
         'precio_costo',
+        'fecha_ingreso',
     ];
 
     public function producto()

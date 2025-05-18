@@ -34,4 +34,34 @@ class MovimientoController extends Controller
 
         return view('movimientos.index', compact('movimientos', 'productos'));
     }
+
+    public function store(Request $request)
+{
+    $request->validate([
+        'lote_id' => 'required|exists:lotes,id',
+        'tipo' => 'required|in:entrada,salida',
+        'cantidad' => 'required|integer|min:1',
+        'detalle' => 'nullable|string|max:255',
+    ]);
+
+    $lote = \App\Models\Lote::findOrFail($request->lote_id);
+
+    if ($request->tipo === 'salida' && $request->cantidad > $lote->cantidad_actual) {
+        return back()->withErrors(['cantidad' => 'No hay suficiente stock en este lote.']);
+    }
+
+    // Actualizar la cantidad actual en el lote
+    $lote->cantidad_actual += $request->tipo === 'entrada' ? $request->cantidad : -$request->cantidad;
+    $lote->save();
+
+    // Registrar el movimiento
+    \App\Models\Movimiento::create([
+        'inventario_id' => $lote->producto->id,
+        'tipo' => $request->tipo,
+        'cantidad' => $request->cantidad,
+        'detalle' => $request->detalle,
+    ]);
+
+    return redirect()->route('movimientos.index')->with('success', 'Movimiento registrado con éxito.');
+}
 }

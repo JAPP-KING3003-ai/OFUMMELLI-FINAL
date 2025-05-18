@@ -37,6 +37,8 @@ Route::post('/productos/marcar-impreso', [TicketController::class, 'marcarProduc
 Route::get('/cuentas/{cuenta}/imprimir-linea/{lineId}', [TicketController::class, 'imprimirLinea'])->name('cuentas.imprimir-linea');
 Route::get('/cuentas/{cuenta}/imprimir-producto/{productoId}/{idUnico}', [TicketController::class, 'imprimirProducto'])
     ->name('cuentas.imprimir-producto');
+Route::get('/inventarios/{id}/lotes', [InventarioController::class, 'show'])->name('inventarios.lotes');
+Route::post('/inventarios', [InventarioController::class, 'store'])->name('inventarios.store');
 
 
 
@@ -61,7 +63,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventarios/entrada-global', [InventarioController::class, 'storeEntradaGlobal'])->name('inventarios.entrada.global.store'); // Guardar entrada global
     Route::get('/inventarios/exportar', [InventarioController::class, 'exportarExcel'])->name('inventarios.exportar'); // Exportar inventario
     Route::delete('/inventarios/{id}', [InventarioController::class, 'destroy'])->name('inventarios.destroy'); // Eliminar producto
-    Route::post('/inventarios', [InventarioController::class, 'store'])->name('inventarios.store'); // Guardar producto
 
     // Movimientos
     Route::get('/movimientos', [MovimientoController::class, 'index'])->name('movimientos.index');
