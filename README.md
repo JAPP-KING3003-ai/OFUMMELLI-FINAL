@@ -136,3 +136,4 @@ Contacto: japp.king.dev@gmail.com
 ## 📌 Nota
 
 Este sistema aún puede estar en desarrollo. Se recomienda hacer respaldos frecuentes de la base de datos y del sistema.
+"# OFUMMELLI-FINAL"  
