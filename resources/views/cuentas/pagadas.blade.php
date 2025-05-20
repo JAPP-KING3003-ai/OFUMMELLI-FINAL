@@ -32,7 +32,7 @@
                         </thead>
                         <tbody>
                             @foreach ($cuentas as $cuenta)
-                                <tr class="hover:bg-gray-600 text-light-text dark:text-dark-text border-t dark:border-gray-600">
+                                <tr class="hover:bg-gray-400 text-light-text dark:text-dark-text border-t dark:border-gray-600">
                                     <td class="px-4 py-2">{{ $cuenta->id }}</td>
                                     <td class="px-4 py-2">
                                         {{ $cuenta->cliente_nombre ?? 'No especificado' }}

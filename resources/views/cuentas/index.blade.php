@@ -61,17 +61,28 @@
 
 
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-700 text-white">
-                            <tr>
-                                <th class="px-4 py-2">ID</th>
-                                <th class="px-4 py-2">Cliente</th>
-                                <th class="px-4 py-2">Responsable</th>
-                                <th class="px-4 py-2">Estación</th>
-                                <th class="px-4 py-2">Total</th>
-                                <th class="px-4 py-2">Fecha</th>
-                                <th class="px-4 py-2">Acciones</th>
-                            </tr>
-                        </thead>
+                        @php
+    // Función para cambiar la dirección de ordenamiento
+    function sort_link($column, $label, $sort, $direction) {
+        $isCurrent = $sort === $column;
+        $nextDirection = ($isCurrent && $direction === 'asc') ? 'desc' : 'asc';
+        $arrow = $isCurrent ? ($direction === 'asc' ? '↑' : '↓') : '';
+        $params = array_merge(request()->except('page'), ['sort' => $column, 'direction' => $nextDirection]);
+        $url = url()->current() . '?' . http_build_query($params);
+        return '<a href="' . $url . '" class="hover:underline">' . $label . ' ' . $arrow . '</a>';
+    }
+@endphp
+<thead class="bg-gray-700 text-white">
+    <tr>
+        <th class="px-4 py-2">{!! sort_link('id', 'ID', $sort ?? '', $direction ?? '') !!}</th>
+        <th class="px-4 py-2">{!! sort_link('cliente_nombre', 'Cliente', $sort ?? '', $direction ?? '') !!}</th>
+        <th class="px-4 py-2">{!! sort_link('responsable_pedido', 'Responsable', $sort ?? '', $direction ?? '') !!}</th>
+        <th class="px-4 py-2">{!! sort_link('estacion', 'Estación', $sort ?? '', $direction ?? '') !!}</th>
+        <th class="px-4 py-2">{!! sort_link('total_estimado', 'Total', $sort ?? '', $direction ?? '') !!}</th>
+        <th class="px-4 py-2">{!! sort_link('fecha_apertura', 'Fecha', $sort ?? '', $direction ?? '') !!}</th>
+        <th class="px-4 py-2">Acciones</th>
+    </tr>
+</thead>
                         <tbody class="bg-white dark:bg-gray-800 text-light-text dark:text-dark-text divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach ($cuentas as $cuenta)
                                 <tr class="hover:bg-gray-300 dark:hover:bg-gray-700">
@@ -83,31 +94,65 @@
                                     <td class="px-4 py-2">{{ $cuenta->estacion }}</td>
                                     <td class="px-4 py-2 text-green-700">${{ number_format($cuenta->total_estimado, 2) }}</td>
                                     <td class="px-4 py-2">{{ $cuenta->fecha_apertura }}</td>
-                                    <td class="px-4 py-2 space-x-1">
-                                        <!-- Botón Cerrar -->
-                                        <a href="{{ route('cuentas.show', $cuenta) }}"
-                                           class="inline-block px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm">
-                                            Pagar Cuenta
-                                        </a>
+                                    <td class="px-4 py-2 space-x-1 flex items-center">
+                                        @php
+                                            $metodosPago = json_decode($cuenta->metodos_pago, true) ?? [];
+                                            $hayMetodos = count($metodosPago) > 0;
+                                            $totalSinPropina = 0;
+                                            $propinas = 0;
+                                            foreach ($metodosPago as $pago) {
+                                                $monto = $pago['monto'] ?? 0;
+                                                if (in_array($pago['metodo'], ['divisas', 'zelle', 'tarjeta_credito_dolares'])) {
+                                                    $totalSinPropina += $monto;
+                                                } elseif (in_array($pago['metodo'], ['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'])) {
+                                                    $totalSinPropina += $monto / ($cuenta->tasa_dia ?: 1);
+                                                } elseif ($pago['metodo'] === 'euros') {
+                                                    $totalSinPropina += $monto * 1.1;
+                                                }
+                                                if ($pago['metodo'] === 'propina_divisas') {
+                                                    $propinas += $monto;
+                                                } elseif ($pago['metodo'] === 'propina_bolivares') {
+                                                    $propinas += $monto / ($cuenta->tasa_dia ?: 1);
+                                                }
+                                            }
+                                            $totalSinPropina -= $propinas;
+                                            $puedePagar = $hayMetodos && $totalSinPropina >= $cuenta->total_estimado;
+                                            $motivoTooltip = !$hayMetodos
+                                                ? 'No se han agregado métodos de pago'
+                                                : (($totalSinPropina < $cuenta->total_estimado) ? 'El pago es insuficiente para pagar esta cuenta' : '');
+                                        @endphp
 
-                                        <!-- Botón Editar -->
+                                        {{-- BOTÓN PAGAR CUENTA CON TOOLTIP --}}
+                                        <div class="relative group inline-block">
+                                            <a href="{{ route('cuentas.show', $cuenta) }}"
+                                            class="inline-block px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm 
+                                            {{ !$puedePagar ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}"
+                                            {{ !$puedePagar ? 'tabindex="-1" aria-disabled="true"' : '' }}>
+                                                Pagar Cuenta
+                                            </a>
+                                            @if (!$puedePagar)
+                                                <div class="absolute z-10 hidden group-hover:block left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 px-2 py-1 bg-gray-800 text-xs text-white rounded shadow-lg text-center">
+                                                    {{ $motivoTooltip }}
+                                                </div>
+                                            @endif
+                                        </div>
+
                                         <a href="{{ route('cuentas.edit', $cuenta) }}"
-                                           class="inline-block px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm">
+                                        class="inline-block px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm">
                                             Editar
                                         </a>
 
-                                    @if (Auth::user()->role === 'Admin')
-                                        <!-- Botón Eliminar -->
-                                        <form action="{{ route('cuentas.destroy', $cuenta) }}" method="POST" class="inline-block"
-                                              onsubmit="return confirm('¿Estás seguro de eliminar esta cuenta?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm">
-                                                Eliminar
-                                            </button>
-                                        </form>
-                                    @endif
+                                        @if (Auth::user()->role === 'Admin')
+                                            <form action="{{ route('cuentas.destroy', $cuenta) }}" method="POST" class="inline-block"
+                                                onsubmit="return confirm('¿Estás seguro de eliminar esta cuenta?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm">
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

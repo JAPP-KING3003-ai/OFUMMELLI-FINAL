@@ -40,7 +40,15 @@ Route::get('/cuentas/{cuenta}/imprimir-producto/{productoId}/{idUnico}', [Ticket
 Route::get('/inventarios/{id}/lotes', [InventarioController::class, 'show'])->name('inventarios.lotes');
 Route::post('/inventarios', [InventarioController::class, 'store'])->name('inventarios.store');
 
+Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEntrada'])->name('inventarios.storeEntrada');
+Route::put('/inventarios/{id}', [InventarioController::class, 'update'])->name('inventarios.update');
 
+// Formulario salida
+Route::get('/inventarios/{id}/salida', [App\Http\Controllers\InventarioController::class, 'formSalida'])->name('inventarios.salida.form');
+// Registrar salida POST
+Route::post('/inventarios/{id}/salida', [App\Http\Controllers\InventarioController::class, 'registrarSalida'])->name('inventarios.salida');
+
+Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEntrada'])->name('inventarios.storeEntrada');
 
 
 // Agrupadas bajo autenticación
@@ -63,6 +71,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventarios/entrada-global', [InventarioController::class, 'storeEntradaGlobal'])->name('inventarios.entrada.global.store'); // Guardar entrada global
     Route::get('/inventarios/exportar', [InventarioController::class, 'exportarExcel'])->name('inventarios.exportar'); // Exportar inventario
     Route::delete('/inventarios/{id}', [InventarioController::class, 'destroy'])->name('inventarios.destroy'); // Eliminar producto
+    Route::delete('/lotes/{id}', [InventarioController::class, 'destroyLote'])->name('lotes.destroy'); // Eliminar lote
+    Route::get('/inventarios/{id}/lotes', [App\Http\Controllers\InventarioController::class, 'showLotes'])->name('inventarios.lotes');
 
     // Movimientos
     Route::get('/movimientos', [MovimientoController::class, 'index'])->name('movimientos.index');

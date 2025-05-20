@@ -175,7 +175,7 @@
                 <button type="button" id="agregar-producto" class="mt-3 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">+ Agregar Producto</button>
 
 
-            <p class="text-green-600 font-bold  mb-6">
+            <p class="text-green-600 font-bold  m-4">
                 Total Estimado: $<span id="total-estimado">{{ number_format($cuenta->total_estimado, 2) }}</span>
             </p>
             
@@ -192,6 +192,7 @@
         </p>
 
 
+        <br>
 
 
 <!-- Métodos de Pago -->

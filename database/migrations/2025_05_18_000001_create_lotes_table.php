@@ -13,8 +13,8 @@ return new class extends Migration
             $table->unsignedBigInteger('producto_id')->index(); // Relación con el producto
             $table->integer('cantidad_inicial'); // Cantidad agregada originalmente
             $table->integer('cantidad_actual'); // Cantidad restante
-            $table->decimal('precio_costo', 8, 2); // Precio de costo del lote
-            $table->date('fecha_ingreso'); // Fecha en la que se añadió el lote
+            $table->decimal('precio_costo', 10, 2); // Precio de costo del lote
+            $table->datetime('fecha_ingreso'); // Fecha y hora en la que se añadió el lote
             $table->timestamps();
 
             // Llave foránea

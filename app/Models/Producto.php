@@ -19,6 +19,12 @@ class Producto extends Model
         'area_id',
     ];
 
+     // Relación: Un producto tiene muchos lotes
+    public function lotes()
+    {
+        return $this->hasMany(Lote::class);
+    }
+
     /**
      * Accesor para retornar el precio como float (por si lo necesitas en vistas o controladores).
      */

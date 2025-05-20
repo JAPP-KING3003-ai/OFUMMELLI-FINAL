@@ -54,23 +54,78 @@
                     </div>
                 </form>
 
+                <!-- @foreach ($movimientos as $movimiento)
+                    <pre>{{ print_r($movimiento->toArray(), true) }}</pre>
+                @endforeach -->
+
                 <!-- TABLA DE MOVIMIENTOS -->
                 <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                    @php
+                        $sort = request('sort', 'created_at');
+                        $dir = request('direction', 'desc');
+                        function nextDir($col) {
+                            return (request('sort') === $col && request('direction') === 'asc') ? 'desc' : 'asc';
+                        }
+                    @endphp
                     <thead>
                         <tr class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                            <th class="py-2 px-4 border-b dark:border-gray-600">Producto</th>
-                            <th class="py-2 px-4 border-b dark:border-gray-600">Tipo de Movimiento</th>
-                            <th class="py-2 px-4 border-b dark:border-gray-600">Cantidad</th>
-                            <th class="py-2 px-4 border-b dark:border-gray-600">Fecha y Hora</th>
+                            <th class="py-2 px-4 border-b dark:border-gray-600">
+                                <a href="{{ route('movimientos.index', array_merge(request()->all(), ['sort' => 'inventario_nombre', 'direction' => nextDir('inventario_nombre')])) }}">
+                                    Producto
+                                    @if($sort === 'inventario_nombre')
+                                        @if($dir === 'asc')
+                                            ▲
+                                        @else
+                                            ▼
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="py-2 px-4 border-b dark:border-gray-600">
+                                <a href="{{ route('movimientos.index', array_merge(request()->all(), ['sort' => 'tipo', 'direction' => nextDir('tipo')])) }}">
+                                    Tipo de Movimiento
+                                    @if($sort === 'tipo')
+                                        @if($dir === 'asc')
+                                            ▲
+                                        @else
+                                            ▼
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="py-2 px-4 border-b dark:border-gray-600">
+                                <a href="{{ route('movimientos.index', array_merge(request()->all(), ['sort' => 'cantidad', 'direction' => nextDir('cantidad')])) }}">
+                                    Cantidad
+                                    @if($sort === 'cantidad')
+                                        @if($dir === 'asc')
+                                            ▲
+                                        @else
+                                            ▼
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="py-2 px-4 border-b dark:border-gray-600">
+                                <a href="{{ route('movimientos.index', array_merge(request()->all(), ['sort' => 'created_at', 'direction' => nextDir('created_at')])) }}">
+                                    Fecha y Hora
+                                    @if($sort === 'created_at')
+                                        @if($dir === 'asc')
+                                            ▲
+                                        @else
+                                            ▼
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($movimientos as $movimiento)
                             <tr class="hover:bg-gray-300 dark:hover:bg-gray-600 text-white">
-                                <td class="py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->inventario->producto->nombre ?? '-' }}</td>
-                                <td class="py-2 px-4 border-b dark:border-gray-600">{{ ucfirst($movimiento->tipo ?? 'N/A') }}</td>
-                                <td class="py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->cantidad ?? '-' }}</td>
-                                <td class="py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="text-gray-900 dark:text-gray-100 text-center py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->inventario->nombre ?? '-' }}</td>
+                                <td class="text-gray-900 dark:text-gray-100 text-center py-2 px-4 border-b dark:border-gray-600">{{ ucfirst($movimiento->tipo ?? 'N/A') }}</td>
+                                <td class="text-gray-900 dark:text-gray-100 text-center py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->cantidad ?? '-' }}</td>
+                                <td class="text-gray-900 dark:text-gray-100 text-center py-2 px-4 border-b dark:border-gray-600">{{ $movimiento->created_at->format('d/m/Y H:i') }}</td>
                             </tr>
                         @empty
                             <tr>

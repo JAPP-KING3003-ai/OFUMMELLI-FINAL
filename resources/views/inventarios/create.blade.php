@@ -5,60 +5,145 @@
         </h2>
     </x-slot>
 
-    <div class="py-6 bg-gray-100 dark:bg-gray-900">
-        <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+    <div class="py-10 bg-gray-100 dark:bg-gray-900 min-h-screen">
+        <div class="mx-auto max-w-lg px-4">
+            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 space-y-8">
 
-            @if ($errors->any())
-    <div class="mb-4">
-        <ul class="list-disc list-inside text-red-600">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+                @if ($errors->any())
+                    <div class="mb-4">
+                        <ul class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
-                <form action="{{ route('inventarios.store') }}" method="POST">
+                <form action="{{ route('inventarios.store') }}" method="POST" class="space-y-6">
                     @csrf
 
-                    <!-- Nombre del Producto -->
-                    <div class="mb-4">
-                        <label for="nombre" class="block text-gray-800 dark:text-gray-200">Nombre del Producto:</label>
+                    <div>
+                        <label for="nombre" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Nombre del Producto</label>
                         <input type="text" name="nombre" id="nombre" value="{{ old('nombre') }}" required
-                               class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
-                    </div>
-
-                    <!-- Código del Producto -->
-                    <div class="mb-4">
-                        <label for="codigo" class="block text-gray-800 dark:text-gray-200">Código:</label>
-                        <input type="text" name="codigo" id="codigo" value="{{ old('codigo') }}" required
-                            class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
-                        <small class="text-gray-500">Si estás registrando un nuevo lote del mismo producto, usa <strong>#</strong> al inicio del código (por ejemplo: #CAF-001).</small>
-                    </div>
-
-                    <!-- Cantidad Inicial -->
-                    <div class="mb-4">
-                        <label for="cantidad_inicial" class="block text-gray-800 dark:text-gray-200">Cantidad Inicial:</label>
-                        <input type="number" name="cantidad_inicial" id="cantidad_inicial" value="{{ old('cantidad_inicial', 0) }}" required min="0"
-                               class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
-                    </div>
-
-                    <!-- Precio Costo -->
-                    <div class="mb-4">
-                        <label for="precio_costo" class="block text-gray-800 dark:text-gray-200">Precio Costo:</label>
-                        <input type="number" name="precio_costo" id="precio_costo" value="{{ old('precio_costo', 0) }}" step="0.01" required min="0"
-                               class="w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white">
+                            class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white shadow-sm">
                     </div>
 
                     <div>
-        <label for="unidad_medida">Unidad de Medida</label>
-        <input type="text" name="unidad_medida" id="unidad_medida" required>
-    </div>
-    <button type="submit">Guardar Producto</button>
-                </form>
+                        <label for="codigo" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Código</label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 font-bold">#</span>
+                            <input type="text" name="codigo" id="codigo" value="{{ old('codigo') }}" required
+                                class="block w-full rounded-r-md border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white shadow-sm focus:ring focus:ring-blue-200">
+                        </div>
+                        <small class="text-gray-500">Ejemplo: <strong>CAF-001</strong> (el "#" se añade automáticamente)</small>
+                    </div>
 
+                    <div>
+                        <label for="unidad_medida" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Unidad de Medida</label>
+                        <select name="unidad_medida" id="unidad_medida" required onchange="toggleUnidadPersonalizada()"
+                                class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white">
+                            <option value="">Selecciona una unidad</option>
+                            <option value="kg" {{ old('unidad_medida') == 'kg' ? 'selected' : '' }}>Kilos</option>
+                            <option value="unidad" {{ old('unidad_medida') == 'unidad' ? 'selected' : '' }}>Unidades</option>
+                            <option value="paquete" {{ old('unidad_medida') == 'paquete' ? 'selected' : '' }}>Paquete(s)</option>
+                            <option value="caja" {{ old('unidad_medida') == 'caja' ? 'selected' : '' }}>Caja(s)</option>
+                            <option value="litro" {{ old('unidad_medida') == 'litro' ? 'selected' : '' }}>Litros</option>
+                            <option value="saco" {{ old('unidad_medida') == 'saco' ? 'selected' : '' }}>Saco(s)</option>
+                            <option value="docena" {{ old('unidad_medida') == 'docena' ? 'selected' : '' }}>Docena(s)</option>
+                            <option value="bulto" {{ old('unidad_medida') == 'bulto' ? 'selected' : '' }}>Bulto(s)</option>
+                            <option value="barra" {{ old('unidad_medida') == 'barra' ? 'selected' : '' }}>Barra(s)</option>
+                            <option value="personalizada" {{ old('unidad_medida') && !in_array(old('unidad_medida'), [
+                                'kg','unidad','paquete','caja','litro','saco','docena','bulto','barra'
+                            ]) ? 'selected' : '' }}>Otra (escribir)</option>
+                        </select>
+                        <input type="text" name="unidad_personalizada" id="unidad_personalizada"
+                            class="mt-2 w-full border rounded px-4 py-2 dark:bg-gray-700 dark:text-white"
+                            style="display: none;"
+                            value="{{ old('unidad_personalizada', (old('unidad_medida') && !in_array(old('unidad_medida'), [
+                                'kg','unidad','paquete','caja','litro','saco','docena','bulto','barra'
+                            ]) ? old('unidad_medida') : '')) }}"
+                            placeholder="Escribe la unidad de medida preferida">
+                    </div>
+
+                    <div>
+                        <label for="cantidad_inicial" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                            Cantidad Inicial <span id="unidad-label">(en ...)</span>
+                        </label>
+                        <input type="number" name="cantidad_inicial" id="cantidad_inicial" value="{{ old('cantidad_inicial', 0) }}" required min="0"
+                            class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white shadow-sm">
+                    </div>
+
+                    <div>
+                        <label for="costo_total" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                            Costo Total del Lote ($)
+                        </label>
+                        <input type="number" name="costo_total" id="costo_total" value="{{ old('costo_total', 0) }}" step="0.01" required min="0"
+                            class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white shadow-sm">
+                    </div>
+
+                    <div>
+                        <label for="precio_unitario" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                            Costo por <span id="unidad-label-dos">unidad</span> (calculado)
+                        </label>
+                        <input type="text" id="precio_unitario"
+                            class="block w-full rounded-md border-gray-200 bg-gray-100 dark:bg-gray-700 dark:text-white"
+                            value="0.00" disabled>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit"
+                            class="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold shadow bg-blue-600 hover:bg-blue-700">
+                            Guardar Producto
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleUnidadPersonalizada() {
+            let select = document.getElementById('unidad_medida');
+            let input = document.getElementById('unidad_personalizada');
+            let unidadLabel = document.getElementById('unidad-label');
+            let unidadLabelDos = document.getElementById('unidad-label-dos');
+            let selectedOption = select.options[select.selectedIndex];
+            if(select.value === 'personalizada') {
+                input.style.display = 'block';
+                input.required = true;
+                unidadLabel.textContent = '(en ' + (input.value || '...') + ')';
+                unidadLabelDos.textContent = input.value || 'unidad';
+            } else {
+                input.style.display = 'none';
+                input.required = false;
+                unidadLabel.textContent = '(en ' + selectedOption.text + ')';
+                unidadLabelDos.textContent = selectedOption.text;
+            }
+        }
+        function calcularPrecioUnitario() {
+            const cantidad = parseFloat(document.getElementById('cantidad_inicial').value) || 0;
+            const costo_total = parseFloat(document.getElementById('costo_total').value) || 0;
+            const precio = (cantidad > 0) ? (costo_total / cantidad) : 0;
+            document.getElementById('precio_unitario').value = precio.toFixed(2);
+        }
+        document.getElementById('unidad_medida').addEventListener('change', toggleUnidadPersonalizada);
+        document.getElementById('cantidad_inicial').addEventListener('input', calcularPrecioUnitario);
+        document.getElementById('costo_total').addEventListener('input', calcularPrecioUnitario);
+
+        // Soporte para cambio en input cuando es personalizada
+        if(document.getElementById('unidad_personalizada')) {
+            document.getElementById('unidad_personalizada').addEventListener('input', function() {
+                let unidadLabel = document.getElementById('unidad-label');
+                let unidadLabelDos = document.getElementById('unidad-label-dos');
+                unidadLabel.textContent = '(en ' + (this.value || '...') + ')';
+                unidadLabelDos.textContent = this.value || 'unidad';
+            });
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleUnidadPersonalizada();
+            calcularPrecioUnitario();
+        });
+    </script>
 </x-app-layout>

@@ -25,10 +25,10 @@
                     <tbody>
                         @forelse ($productos as $producto)
                             <tr class="hover:bg-gray-300 dark:hover:bg-gray-600">
-                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-800 dark:text-gray-200">{{ $producto->id }}</td>
-                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-800 dark:text-gray-200">{{ $producto->codigo }}</td>
-                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-800 dark:text-gray-200">{{ $producto->nombre }}</td>
-                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-800 dark:text-gray-200">${{ number_format($producto->precio_venta, 2) }}</td>
+                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-900 dark:text-gray-100 text-center">{{ $producto->id }}</td>
+                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-900 dark:text-gray-100 text-center">{{ $producto->codigo }}</td>
+                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-900 dark:text-gray-100 text-center">{{ $producto->nombre }}</td>
+                                <td class="py-2 px-4 border-b dark:border-gray-600 text-gray-900 dark:text-gray-100 text-center">${{ number_format($producto->precio_venta, 2) }}</td>
                                 <td class="py-2 px-4 border-b dark:border-gray-600 flex space-x-2">
                                     <a href="{{ route('productos.edit', $producto) }}" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Editar</a>
                                     <form action="{{ route('productos.destroy', $producto) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este producto?');">

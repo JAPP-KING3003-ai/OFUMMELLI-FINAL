@@ -52,10 +52,13 @@
                     <div class="mb-4">
                         <label for="estacion" class="block font-medium text-sm text-light-text dark:text-dark-text">Estación</label>
                         <select name="estacion" id="estacion" class="select2 w-full border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text">
-                            <option value="Barra">Barra</option>
+                            <!-- <option value="Barra">Barra</option>
                             <option value="Cocina">Cocina</option>
                             <option value="Carne en Vara">Carne en Vara</option>
-                            <option value="Cachapas">Cachapas</option>
+                            <option value="Cachapas">Cachapas</option> -->
+                            <option value="Seleccionar Estación">Seleccionar Estación</option>
+                            <option value="Churuata">Churuata</option>
+                            <option value="Salón Principal">Salón Principal</option>
                         </select>
                     </div>
 

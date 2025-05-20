@@ -18,27 +18,35 @@ use Illuminate\Support\Facades\Response;
 class CuentaController extends Controller
 {
     public function index(Request $request)
-    {
-
-        // Validación: Solo Administradores, Supervisores y Cajeros pueden acceder
-        if (!in_array(Auth::user()->role, ['Admin', 'Supervisor', 'Cajero'])) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
-        }
-
-        $search = $request->get('search');
-    
-        // Consulta para obtener solo las cuentas NO pagadas con búsqueda opcional
-        $cuentas = Cuenta::where('pagada', false) // Solo cuentas no pagadas
-            ->when($search, function ($query, $search) {
-                $query->where('cliente_nombre', 'like', "%$search%")
-                      ->orWhere('responsable_pedido', 'like', "%$search%")
-                      ->orWhere('estacion', 'like', "%$search%");
-            })
-            ->orderBy('updated_at', 'desc') // Ordenar por la fecha de actualización más reciente
-            ->paginate(10); // Asegúrate de usar paginación
-    
-        return view('cuentas.index', compact('cuentas'));
+{
+    if (!in_array(Auth::user()->role, ['Admin', 'Supervisor', 'Cajero'])) {
+        abort(403, 'No tienes permiso para acceder a esta sección.');
     }
+
+    $search = $request->get('search');
+    $sort = $request->input('sort', 'updated_at'); // Por defecto 'updated_at'
+    $direction = $request->input('direction', 'desc');
+
+    $sortable = ['id', 'cliente_nombre', 'responsable_pedido', 'estacion', 'total_estimado', 'fecha_apertura', 'updated_at'];
+
+    $query = Cuenta::where('pagada', false)
+        ->when($search, function ($query, $search) {
+            $query->where('cliente_nombre', 'like', "%$search%")
+                  ->orWhere('responsable_pedido', 'like', "%$search%")
+                  ->orWhere('estacion', 'like', "%$search%");
+        });
+
+    // Solo permitir ordenar por columnas válidas
+    if (in_array($sort, $sortable)) {
+        $query->orderBy($sort, $direction);
+    } else {
+        $query->orderBy('updated_at', 'desc');
+    }
+
+    $cuentas = $query->paginate(10)->appends($request->all());
+
+    return view('cuentas.index', compact('cuentas', 'sort', 'direction'));
+}
 
 
     public function create()

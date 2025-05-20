@@ -14,8 +14,15 @@ class Lote extends Model
         'fecha_ingreso',
     ];
 
+    // Relación: Un lote pertenece a un producto del inventario
     public function producto()
     {
-        return $this->belongsTo(Producto::class);
+        return $this->belongsTo(\App\Models\InventarioProducto::class, 'producto_id');
+    }
+
+    // Relación: Un lote puede tener muchos movimientos
+    public function movimientos()
+    {
+        return $this->hasMany(Movimiento::class);
     }
 }
