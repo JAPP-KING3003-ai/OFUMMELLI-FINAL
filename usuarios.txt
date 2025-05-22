@@ -1,0 +1,24 @@
+Usuarios de Cajeras:
+
+✔ María Eugenia Girott 
+maria-girott@ofummelli.com
+	Vv13885083.*
+
+
+✔ Karla Olivero 
+karla-olivero@ofummelli.com
+	Vv18815369.*
+
+✔ Stefhani Montero 
+stefhani-montero@ofummelli.com
+	Vv22904609.*
+
+✔ Andreina Berne 
+andreina-berne@ofummelli.com
+	Vv15316054.*
+
+
+Usuario Administrador :
+
+admin@ofummelli.com
+12345678

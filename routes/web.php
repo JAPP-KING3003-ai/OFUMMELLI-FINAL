@@ -6,97 +6,105 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\MovimientoController;
-use App\Http\Controllers\CuentaController; 
-use App\Http\Controllers\DolarPromedioController; // ✅ tasa de cambio
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\CuentaController;
+use App\Http\Controllers\DolarPromedioController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\Auth\LoginController;
+use Illuminate\Support\Facades\DB;
 
-// Ruta principal
+// RUTA DE LOGIN PERSONALIZADA (debe estar antes de cualquier require y solo debe haber una)
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/tickets/imprimir/{cuenta}/{idUnico}', [TicketController::class, 'imprimirQZ'])->name('tickets.imprimirQZ');
+Route::get('/cuentas/exportar-pagadas', [CuentaController::class, 'exportarCuentasPagadas'])->name('cuentas.exportarPagadas');
+
+
+// RUTA PRINCIPAL
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Panel de Control (requiere autenticación)
+// PANEL DE CONTROL (protegido)
 Route::get('/Panel de Control', function () {
     return view('Panel de Control');
 })->middleware(['auth', 'verified'])->name('Panel de Control');
 
-// Tasa de cambio
+// TASA DE CAMBIO (APIs)
 Route::post('/api/tasa-cambio', [DolarPromedioController::class, 'actualizarTasa'])->name('tasa.actualizar');
 Route::get('/api/tasa-cambio', function () {
     $tasa = DB::table('config')->where('key', 'tasa_cambio')->value('value');
     return response()->json(['tasa' => $tasa]);
 });
 
-Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas'); // Ver cuentas pagadas
+// DÓLAR PROMEDIO (pública)
+Route::get('/dolar-promedio', [DolarPromedioController::class, 'obtenerDolarPromedio']);
+
+// RUTAS PARA IMPRESIÓN DE TICKETS Y MARCAR IMPRESO (solo una vez, sin duplicados)
+Route::post('/cuentas/{cuenta}/producto/{productoId}/{idUnico}/imprimir', [TicketController::class, 'imprimirProducto'])->name('cuenta.imprimir.producto');
+Route::post('/cuentas/{cuentaId}/imprimir', [TicketController::class, 'imprimir'])->name('cuenta.imprimir');
+Route::post('/producto/marcar-impreso', [TicketController::class, 'marcarProductoImpreso'])->name('producto.marcar.impreso');
+Route::post('/productos/marcar-impreso', [TicketController::class, 'marcarProductoImpreso']); // Si usas ambas rutas, unifícalas en una sola
+
+// RUTAS DE CUENTAS Y TICKETS QUE NO REQUIEREN AUTH (AJUSTA SI ES NECESARIO)
+Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas');
 Route::get('/cuentas/{cuenta}/imprimir/{area}', [CuentaController::class, 'imprimir'])->name('cuentas.imprimir');
-Route::post('/cuentas/producto/imprimir', [TicketController::class, 'imprimirProducto'])->name('producto.imprimir');
-Route::get('/cuentas/{cuenta}/imprimir/{area}', [TicketController::class, 'imprimirTicket'])->name('cuentas.imprimir');
-Route::get('/cuentas/{cuenta}/imprimir-producto/{productoId}', [TicketController::class, 'imprimirProducto'])->name('cuentas.imprimir-producto');
-Route::post('/productos/marcar-impreso', [TicketController::class, 'marcarProductoImpreso']);
+Route::get('/cuentas/{cuenta}/imprimir-producto/{productoId}/{idUnico}', [TicketController::class, 'imprimirProducto'])->name('cuentas.imprimir-producto');
 Route::get('/cuentas/{cuenta}/imprimir-linea/{lineId}', [TicketController::class, 'imprimirLinea'])->name('cuentas.imprimir-linea');
-Route::get('/cuentas/{cuenta}/imprimir-producto/{productoId}/{idUnico}', [TicketController::class, 'imprimirProducto'])
-    ->name('cuentas.imprimir-producto');
+
+// INVENTARIOS (AJUSTA LAS QUE NO REQUIEREN AUTH)
 Route::get('/inventarios/{id}/lotes', [InventarioController::class, 'show'])->name('inventarios.lotes');
 Route::post('/inventarios', [InventarioController::class, 'store'])->name('inventarios.store');
-
 Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEntrada'])->name('inventarios.storeEntrada');
 Route::put('/inventarios/{id}', [InventarioController::class, 'update'])->name('inventarios.update');
+Route::get('/inventarios/{id}/salida', [InventarioController::class, 'formSalida'])->name('inventarios.salida.form');
+Route::post('/inventarios/{id}/salida', [InventarioController::class, 'registrarSalida'])->name('inventarios.salida');
 
-// Formulario salida
-Route::get('/inventarios/{id}/salida', [App\Http\Controllers\InventarioController::class, 'formSalida'])->name('inventarios.salida.form');
-// Registrar salida POST
-Route::post('/inventarios/{id}/salida', [App\Http\Controllers\InventarioController::class, 'registrarSalida'])->name('inventarios.salida');
-
-Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEntrada'])->name('inventarios.storeEntrada');
-
-
-// Agrupadas bajo autenticación
+// AGRUPADAS BAJO AUTENTICACIÓN
 Route::middleware('auth')->group(function () {
 
-    // Perfil
+    // PERFIL
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Inventarios
+    // INVENTARIOS (CRUD COMPLETO Y ENTRADAS)
     Route::get('/inventarios', [InventarioController::class, 'index'])->name('inventarios.index');
-    Route::get('/inventarios/create', [InventarioController::class, 'create'])->name('inventarios.create'); // Crear producto
-    Route::post('/inventarios', [InventarioController::class, 'store'])->name('inventarios.store'); // Guardar producto
-    Route::get('/inventarios/{id}/edit', [InventarioController::class, 'edit'])->name('inventarios.edit'); // Editar producto
-    Route::put('/inventarios/{id}', [InventarioController::class, 'update'])->name('inventarios.update'); // Actualizar producto
-    Route::get('/inventarios/entrada/{id}', [InventarioController::class, 'entrada'])->name('inventarios.entrada'); // Registrar entrada individual
-    Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEntrada'])->name('inventarios.storeEntrada'); // Guardar entrada individual
-    Route::get('/inventarios/entrada-global', [InventarioController::class, 'entradaGlobal'])->name('inventarios.entrada.global'); // Registrar entrada global
-    Route::post('/inventarios/entrada-global', [InventarioController::class, 'storeEntradaGlobal'])->name('inventarios.entrada.global.store'); // Guardar entrada global
-    Route::get('/inventarios/exportar', [InventarioController::class, 'exportarExcel'])->name('inventarios.exportar'); // Exportar inventario
-    Route::delete('/inventarios/{id}', [InventarioController::class, 'destroy'])->name('inventarios.destroy'); // Eliminar producto
-    Route::delete('/lotes/{id}', [InventarioController::class, 'destroyLote'])->name('lotes.destroy'); // Eliminar lote
-    Route::get('/inventarios/{id}/lotes', [App\Http\Controllers\InventarioController::class, 'showLotes'])->name('inventarios.lotes');
+    Route::get('/inventarios/create', [InventarioController::class, 'create'])->name('inventarios.create');
+    Route::post('/inventarios', [InventarioController::class, 'store'])->name('inventarios.store');
+    Route::get('/inventarios/{id}/edit', [InventarioController::class, 'edit'])->name('inventarios.edit');
+    Route::put('/inventarios/{id}', [InventarioController::class, 'update'])->name('inventarios.update');
+    Route::get('/inventarios/entrada/{id}', [InventarioController::class, 'entrada'])->name('inventarios.entrada');
+    Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEntrada'])->name('inventarios.storeEntrada');
+    Route::get('/inventarios/entrada-global', [InventarioController::class, 'entradaGlobal'])->name('inventarios.entrada.global');
+    Route::post('/inventarios/entrada-global', [InventarioController::class, 'storeEntradaGlobal'])->name('inventarios.entrada.global.store');
+    Route::get('/inventarios/exportar', [InventarioController::class, 'exportarExcel'])->name('inventarios.exportar');
+    Route::delete('/inventarios/{id}', [InventarioController::class, 'destroy'])->name('inventarios.destroy');
+    Route::delete('/lotes/{id}', [InventarioController::class, 'destroyLote'])->name('lotes.destroy');
+    Route::get('/inventarios/{id}/lotes', [InventarioController::class, 'showLotes'])->name('inventarios.lotes');
 
-    // Movimientos
+    // MOVIMIENTOS
     Route::get('/movimientos', [MovimientoController::class, 'index'])->name('movimientos.index');
     Route::delete('/movimientos/{movimiento}', [MovimientoController::class, 'destroy'])->name('movimientos.destroy');
-    // Productos
-    Route::resource('productos', ProductoController::class); // CRUD completo para productos
-    Route::get('/productos/buscar', [ProductoController::class, 'buscar'])->name('productos.buscar'); // Buscar producto
 
-    // Clientes
-    Route::resource('clientes', ClienteController::class); // CRUD completo para clientes
-    Route::get('/clientes/buscar', [ClienteController::class, 'buscar'])->name('clientes.buscar'); // Buscar cliente
-    Route::get('/clientes/exportar', [ClienteController::class, 'exportarExcel'])->name('clientes.exportar'); // Exportar clientes
+    // PRODUCTOS
+    Route::resource('productos', ProductoController::class);
+    Route::get('/productos/buscar', [ProductoController::class, 'buscar'])->name('productos.buscar');
 
-    // Cuentas
-    Route::resource('cuentas', CuentaController::class); // CRUD completo para cuentas
-    Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas'); // Ver cuentas pagadas
-    Route::get('/cuentas/exportar-pagadas', [CuentaController::class, 'exportarCuentasPagadas'])->name('cuentas.exportarPagadas'); // Exportar cuentas pagadas
-    Route::put('/cuentas/{cuenta}/cerrar', [CuentaController::class, 'cerrar'])->name('cuentas.cerrar'); // Cerrar cuenta
-    Route::post('/cuentas/{cuenta}/marcar-pagada', [CuentaController::class, 'marcarPagada'])->name('cuentas.marcarPagada'); // Marcar cuenta como pagada
-    
-    // Ruta para imprimir el ticket
-    Route::get('/cuentas/{cuenta}/imprimir/{area}', [TicketController::class, 'imprimirTicket'])->name('cuentas.imprimir');});
+    // CLIENTES
+    Route::resource('clientes', ClienteController::class);
+    Route::get('/clientes/buscar', [ClienteController::class, 'buscar'])->name('clientes.buscar');
+    Route::get('/clientes/exportar', [ClienteController::class, 'exportarExcel'])->name('clientes.exportar');
 
-// Dólar promedio (ruta pública)
-Route::get('/dolar-promedio', [DolarPromedioController::class, 'obtenerDolarPromedio']);
+    // CUENTAS
+    Route::resource('cuentas', CuentaController::class);
+    Route::get('/cuentas/pagadas', [CuentaController::class, 'pagadas'])->name('cuentas.pagadas');
+    Route::put('/cuentas/{cuenta}/cerrar', [CuentaController::class, 'cerrar'])->name('cuentas.cerrar');
+    Route::post('/cuentas/{cuenta}/marcar-pagada', [CuentaController::class, 'marcarPagada'])->name('cuentas.marcarPagada');
 
-require __DIR__.'/auth.php';
+    // RUTA PARA IMPRIMIR EL TICKET DESDE PANEL
+    Route::get('/cuentas/{cuenta}/imprimir/{area}', [TicketController::class, 'imprimirTicket'])->name('cuentas.imprimir');
+});
+
+// SI QUIERES LAS RUTAS DE AUTH PROPIAS DE LARAVEL, AGRÉGALAS SOLO SI LAS NECESITAS
+// require __DIR__.'/auth.php';

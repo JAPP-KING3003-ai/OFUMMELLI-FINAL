@@ -120,7 +120,10 @@ public function store(Request $request)
             // Utilizar el area_id del producto recibido o el área desde la base de datos
             $area_id = $request->areas[$index];
 
+            $id_unico = $request->id_unico[$index] ?? uniqid('prod-');
+
             $productos_array[] = [
+                'id_unico'   => $id_unico,
                 'producto_id' => $producto_id,
                 'cantidad'    => $cantidad,
                 'precio'      => $producto->precio_venta,
@@ -203,11 +206,12 @@ public function store(Request $request)
      $productosSeleccionados = collect(json_decode($cuenta->productos, true) ?? [])
         ->map(function ($producto, $index) {
             return [
-                'id_unico'    => $index, // Identificador único basado en el índice
+                'id_unico'    => $producto['id_unico'] ?? ('prod-'.$producto['producto_id'].'-'.uniqid()), // <-- SOLO ASÍ
                 'producto_id' => $producto['producto_id'],
                 'cantidad' => $producto['cantidad'],
                 'area_id' => $producto['area_id'] ?? null, // Asegurarse de que "area_id" esté definido
                 'printed_at' => $producto['printed_at'] ?? null,
+                'nombre'      => $producto['nombre'] ?? null,
             ];
         })
         ->toArray();
@@ -316,19 +320,21 @@ public function store(Request $request)
 
         foreach ($request->productos as $index => $producto_id) {
             $producto = Producto::findOrFail($producto_id);
-            $cantidad = $request->cantidades[$index] ?? 1; // Cantidad del producto
-            $area_id = $request->areas[$index] ?? $producto->area_id; // Usar el área desde el formulario o la base de datos
-            $subtotal = $producto->precio_venta * $cantidad; // Subtotal del producto
+            $cantidad = $request->cantidades[$index] ?? 1;
+            $area_id = $request->areas[$index] ?? $producto->area_id;
+            $subtotal = $producto->precio_venta * $cantidad;
+            $id_unico = $request->id_unico[$index] ?? uniqid('prod-');
 
             $productos_array[] = [
-                'producto_id' => $producto_id,
-                'nombre'      => $producto->nombre, // Incluir el nombre del producto
-                'cantidad'    => $cantidad,
-                'precio'      => $producto->precio_venta,
-                'subtotal'    => $subtotal,
-                'area_id'     => $area_id, // Incluir el área
-                'printed_at'  => $request->printed_at[$index] ?? $productosExistentesIndexed[$producto_id]['printed_at'] ?? null, // Conservar el estado de impresión
-            ];
+                'id_unico'   => $id_unico,
+                'producto_id'=> $producto_id,
+                'nombre'     => $producto->nombre,
+                'cantidad'   => $cantidad,
+                'precio'     => $producto->precio_venta,
+                'subtotal'   => $subtotal,
+                'area_id'    => $area_id,
+                'printed_at' => $request->printed_at[$index] ?? null,
+    ];
 
             $totalEstimado += $subtotal; // Acumular el subtotal en el total estimado
         }
@@ -464,34 +470,67 @@ public function exportarCuentasPagadas()
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
 
-    // Encabezados
-    $encabezados = ['ID', 'Cliente', 'Responsable', 'Estación', 'Total', 'Fecha', 'Método de Pago', 'Pedido Hecho'];
+    // Encabezados mejorados
+    $encabezados = [
+        'ID', 'Cliente', 'Responsable', 'Cajera', 'Barrero', 'Estación',
+        'Total', 'Total Pagado', 'Vuelto', 'Fecha de Apertura', 'Fecha de Cierre',
+        'Métodos de Pago', 'Detalle del Pedido'
+    ];
+
+    // Poner encabezados y aplicar estilos
     $col = 'A';
-    foreach ($encabezados as $titulo) {
+    foreach ($encabezados as $i => $titulo) {
         $sheet->setCellValue("{$col}1", $titulo);
         $col++;
     }
 
+    $lastCol = chr(ord('A') + count($encabezados) - 1);
+
     // Estilo de encabezado
     $headerStyle = [
-        'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4F81BD']],
-        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 12],
+        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0070C0']],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
     ];
-    $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+    $sheet->getStyle("A1:{$lastCol}1")->applyFromArray($headerStyle);
+    $sheet->getRowDimension(1)->setRowHeight(30);
 
+    // Cuerpo de la tabla
     $fila = 2;
     foreach ($cuentasPagadas as $cuenta) {
-        $sheet->setCellValue("A{$fila}", $cuenta->id);
-        $sheet->setCellValue("B{$fila}", $cuenta->cliente_nombre ?? 'Desconocido');
-        $sheet->setCellValue("C{$fila}", $cuenta->responsable_pedido);
-        $sheet->setCellValue("D{$fila}", $cuenta->estacion);
-        $sheet->setCellValue("E{$fila}", $cuenta->total_estimado);
-        $sheet->setCellValue("F{$fila}", $cuenta->fecha_cierre ?? 'No especificado');
-
-        // Formatear métodos de pago
+        // Decodificar productos y métodos de pago
+        $productos = json_decode($cuenta->productos, true);
         $metodos_pago = json_decode($cuenta->metodos_pago, true);
+
+        // Cálculo de totales y vuelto (igual que en la vista)
+        $totalPagadoEnDolares = 0;
+        $propinasEnDolares = 0;
+
+        if ($metodos_pago) {
+            foreach ($metodos_pago as $pago) {
+                $monto = $pago['monto'] ?? 0;
+
+                if (in_array($pago['metodo'], ['divisas', 'zelle', 'tarjeta_credito_dolares'])) {
+                    $totalPagadoEnDolares += $monto;
+                } elseif (in_array($pago['metodo'], ['pago_movil', 'bs_efectivo', 'debito', 'punto_venta', 'tarjeta_credito_bolivares'])) {
+                    $totalPagadoEnDolares += $cuenta->tasa_dia > 0 ? $monto / $cuenta->tasa_dia : 0;
+                } elseif ($pago['metodo'] === 'euros') {
+                    $totalPagadoEnDolares += $monto * 1.1;
+                }
+
+                // Propinas
+                if ($pago['metodo'] === 'propina_divisas') {
+                    $propinasEnDolares += $monto;
+                } elseif ($pago['metodo'] === 'propina_bolivares') {
+                    $propinasEnDolares += $cuenta->tasa_dia > 0 ? $monto / $cuenta->tasa_dia : 0;
+                }
+            }
+        }
+        $pagosSinPropinas = $totalPagadoEnDolares - $propinasEnDolares;
+        $vuelto = max(0, $pagosSinPropinas - $cuenta->total_estimado);
+
+        // Métodos de pago en string
         $metodos_pago_str = '';
         if ($metodos_pago) {
             foreach ($metodos_pago as $metodo) {
@@ -499,28 +538,18 @@ public function exportarCuentasPagadas()
                 $monto = $metodo['monto'];
                 $referencia = $metodo['referencia'] ?? null;
                 $simbolo = '';
-
-                if (str_contains($nombre_metodo, 'divisa')) {
-                    $simbolo = '$';
-                } elseif (str_contains($nombre_metodo, 'bolivar') || str_contains($nombre_metodo, 'pago') || str_contains($nombre_metodo, 'tarjeta')) {
-                    $simbolo = 'Bs';
-                } elseif (str_contains($nombre_metodo, 'euro')) {
-                    $simbolo = '€';
-                }
-
+                if (str_contains($nombre_metodo, 'divisa')) $simbolo = '$';
+                elseif (str_contains($nombre_metodo, 'bolivar') || str_contains($nombre_metodo, 'pago') || str_contains($nombre_metodo, 'tarjeta')) $simbolo = 'Bs';
+                elseif (str_contains($nombre_metodo, 'euro')) $simbolo = '€';
                 $metodos_pago_str .= "{$metodo['metodo']} {$simbolo}{$monto}";
-                if ($referencia) {
-                    $metodos_pago_str .= " ref:{$referencia}";
-                }
-                $metodos_pago_str .= "\n"; // Añadir salto de línea entre métodos
+                if ($referencia) $metodos_pago_str .= " ref:{$referencia}";
+                $metodos_pago_str .= "\n";
             }
         } else {
             $metodos_pago_str = 'No especificado';
         }
-        $sheet->setCellValue("G{$fila}", trim($metodos_pago_str));
 
         // Detalle del pedido
-        $productos = json_decode($cuenta->productos, true);
         $detalle_pedido = '';
         if ($productos) {
             foreach ($productos as $p) {
@@ -528,28 +557,59 @@ public function exportarCuentasPagadas()
                 $nombre = $producto ? $producto->nombre : "ID: {$p['producto_id']}";
                 $precio = number_format($p['precio'], 2, '.', '');
                 $subtotal = number_format($p['subtotal'], 2, '.', '');
-                $detalle_pedido .= "Cantidad: {$p['cantidad']} /// {$nombre} /// Precio Unitario: \${$precio} /// SUBTOTAL: \${$subtotal}\n\n";
+                $detalle_pedido .= "Cantidad: {$p['cantidad']} - {$nombre} - Unit: \${$precio} - Subtotal: \${$subtotal}\n";
             }
         } else {
             $detalle_pedido = 'No especificado';
         }
-        $sheet->setCellValue("H{$fila}", trim($detalle_pedido));
 
-        // Estilo de celdas con bordes y ajuste de texto
-        $sheet->getStyle("A{$fila}:H{$fila}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getStyle("A{$fila}:H{$fila}")->getAlignment()->setWrapText(true);
+        // Escribir fila con formato bonito
+        $sheet->setCellValue("A{$fila}", $cuenta->id);
+        $sheet->setCellValue("B{$fila}", $cuenta->cliente_nombre ?? 'Desconocido');
+        $sheet->setCellValue("C{$fila}", $cuenta->responsable_pedido ?? 'No especificado');
+        $sheet->setCellValue("D{$fila}", $cuenta->cajera ?? 'No especificado');
+        $sheet->setCellValue("E{$fila}", $cuenta->barrero ?? 'No especificado');
+        $sheet->setCellValue("F{$fila}", $cuenta->estacion ?? 'No especificada');
+        $sheet->setCellValue("G{$fila}", '$' . number_format($cuenta->total_estimado, 2));
+        $sheet->setCellValue("H{$fila}", '$' . number_format($totalPagadoEnDolares, 2));
+        $sheet->setCellValue("I{$fila}", '$' . number_format($vuelto, 2));
+        $sheet->setCellValue("J{$fila}", $cuenta->fecha_apertura ? $cuenta->fecha_apertura->format('d/m/Y H:i') : '-');
+        $sheet->setCellValue("K{$fila}", $cuenta->fecha_cierre ? $cuenta->fecha_cierre->format('d/m/Y H:i') : '-');
+        $sheet->setCellValue("L{$fila}", trim($metodos_pago_str));
+        $sheet->setCellValue("M{$fila}", trim($detalle_pedido));
+
+        // Estilos de fila
+        $sheet->getStyle("A{$fila}:{$lastCol}{$fila}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("A{$fila}:{$lastCol}{$fila}")->getAlignment()->setWrapText(true);
+        $sheet->getStyle("A{$fila}:{$lastCol}{$fila}")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
 
         $fila++;
     }
 
-    // Autoajuste de columnas
-    foreach (range('A', 'H') as $col) {
+    // Autoajuste de columnas y ancho mínimo para detalles
+    foreach (range('A', $lastCol) as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
+    $sheet->getColumnDimension('M')->setWidth(45);
+
+    // Fondo alterno para filas
+    for ($row = 2; $row < $fila; $row++) {
+        if ($row % 2 === 0) {
+            $sheet->getStyle("A{$row}:{$lastCol}{$row}")->applyFromArray([
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'E6F2FF']
+                ]
+            ]);
+        }
+    }
+
+    // Congelar encabezado
+    $sheet->freezePane('A2');
 
     // Guardar y descargar
     $writer = new Xlsx($spreadsheet);
-    $fileName = 'cuentas_pagadas_' . now()->format('Y-m-d') . '.xlsx';
+    $fileName = 'CUENTAS_PAGADAS_' . now()->format('Y-m-d') . '.xlsx';
     $tempFile = tempnam(sys_get_temp_dir(), $fileName);
     $writer->save($tempFile);
 
