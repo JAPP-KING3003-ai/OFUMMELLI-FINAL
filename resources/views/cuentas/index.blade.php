@@ -137,6 +137,12 @@
                                             @endif
                                         </div>
 
+                                        <a href="{{ route('cuentas.imprimirFactura', $cuenta) }}"
+                                        class="inline-block px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm"
+                                        onclick="return confirm('¿Desea imprimir la factura de esta cuenta?')">
+                                            Facturar
+                                        </a>
+
                                         <a href="{{ route('cuentas.edit', $cuenta) }}"
                                         class="inline-block px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm">
                                             Editar

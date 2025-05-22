@@ -14,6 +14,9 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use Illuminate\Support\Facades\Response;
+use Mike42\Escpos\Printer;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+
 
 class CuentaController extends Controller
 {
@@ -615,5 +618,157 @@ public function exportarCuentasPagadas()
 
     return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
 }
+    // ... (tu código previo y funciones arriba) ...
+
+    /**
+     * Imprime una factura agrupando los productos iguales por cantidad.
+     * Visualmente centrada como bloque y con márgenes superior, inferior, izquierda y derecha.
+     * 
+     * --- CONFIGURACIÓN DE MÁRGENES ---
+     * Modifica los valores de $margen_lineas y $margen_espacios para ajustar los márgenes superior/inferior y lateral.
+     */
+    public function imprimirFactura($cuentaId)
+    {
+
+// PARA HACER QUE SE VEA CENTRADO EN LA IMPRESORA DE 58MM TENGO QUE COLOCAR $margen_lineas = 0; y $margen_espacios = 0;
+
+        // === CONFIGURA AQUÍ TUS MÁRGENES ===
+        $margen_lineas = 4;   // Número de líneas en blanco arriba/abajo del bloque (vertical)
+        $margen_espacios = 9; // Número de espacios en blanco izquierda/derecha del bloque (horizontal)
+        // Si tu impresora tiene 32 columnas efectivas y dejas 8 espacios en cada lado, el contenido real centrado tendrá 16 caracteres de ancho
+
+        $cuenta = \App\Models\Cuenta::with('cliente')->findOrFail($cuentaId);
+        $productos = collect(json_decode($cuenta->productos, true));
+        $productos_db = \App\Models\Producto::all()->keyBy('id');
+
+        // Agrupa productos
+        $agrupados = $productos->groupBy('producto_id')->map(function ($items) use ($productos_db) {
+            $primero = $items->first();
+            $producto = $productos_db[$primero['producto_id']] ?? null;
+            return [
+                'nombre' => $primero['nombre'] ?? ($producto ? $producto->nombre : 'Producto'),
+                'cantidad' => $items->sum('cantidad'),
+                'precio' => $primero['precio'],
+                'subtotal' => $items->sum(fn($item) => $item['precio'] * $item['cantidad']),
+            ];
+        });
+
+        $total = $agrupados->sum('subtotal');
+        $tasa = $cuenta->tasa_dia ?? 0;
+        $total_bs = $tasa > 0 ? $total * $tasa : 0;
+        $width = 32;
+
+        // Datos
+        $fecha = $cuenta->fecha_apertura instanceof \Carbon\Carbon
+            ? $cuenta->fecha_apertura->format('d/m/Y H:i')
+            : date('d/m/Y H:i', strtotime($cuenta->fecha_apertura));
+        $cliente = $cuenta->cliente_nombre ?? ($cuenta->cliente->nombre ?? 'No especificado');
+        $cajera = Auth::user()->name ?? '---';
+        $responsable = $cuenta->responsable_pedido ?? '---';
+        $area = $cuenta->estacion ?? '---';
+        $idCuenta = $cuenta->id;
+
+        // ---- Bloque visual centrado con márgenes ----
+        $contenidoBloque = "";
+        $contenidoBloque .= "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n";
+        $contenidoBloque .= "BODEGON RESTAURANTE\n";
+        $contenidoBloque .= "OFUMMELLI\n";
+        $contenidoBloque .= "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒\n";
+        $contenidoBloque .= $this->prettySeparator('═', $width);
+
+        $contenidoBloque .= "Fecha: $fecha\n";
+        $contenidoBloque .= "Cuenta #: $idCuenta\n";
+        $contenidoBloque .= "Cliente: $cliente\n";
+        $contenidoBloque .= "Cajer@: $cajera\n";
+        $contenidoBloque .= "Responsable: $responsable\n";
+        $contenidoBloque .= $this->prettySeparator('─', $width);
+
+        $contenidoBloque .= ">> PEDIDO <<\n";
+        $contenidoBloque .= $this->formatTableHeader(['Cant', 'Producto', 'Subtotal'], [5, 18, 9]);
+        foreach ($agrupados as $prod) {
+            $contenidoBloque .= $this->formatTableRow([
+                $prod['cantidad'],
+                mb_strimwidth($prod['nombre'], 0, 18, "..."),
+                '$' . number_format($prod['subtotal'], 2)
+            ], [5, 18, 9]);
+        }
+        $contenidoBloque .= $this->prettySeparator('─', $width);
+
+        $contenidoBloque .= "TOTAL: $" . number_format($total, 2) . " (Bs. " . number_format($total_bs, 2, ',', '.') . ")\n";
+        $contenidoBloque .= "Tasa usada: " . number_format($tasa, 2, ',', '.') . " Bs/USD\n";
+        $contenidoBloque .= "Área: " . $area . "\n";
+        $contenidoBloque .= $this->prettySeparator('═', $width);
+        $contenidoBloque .= "¡Gracias por su visita!\n";
+        $contenidoBloque .= "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n";
+
+        // --- Centra el bloque y agrega márgenes configurables ---
+        $factura = "";
+        $factura .= str_repeat("\n", $margen_lineas); // margen superior
+
+        // Centrado y margen lateral configurable
+        $internalWidth = $width - (2 * $margen_espacios);
+        $espacios = str_repeat(' ', $margen_espacios);
+        $lineas = explode("\n", $contenidoBloque);
+
+        foreach ($lineas as $line) {
+            if (trim($line) === "") {
+                $factura .= "\n";
+            } else {
+                $factura .= $espacios . rtrim($this->centerText($line, $internalWidth), "\n") . "\n";
+            }
+        }
+
+        $factura .= str_repeat("\n", $margen_lineas); // margen inferior
+
+        // ---- Imprimir ----
+        $area_trabajo = session('area_trabajo') ?? 'facturacion';
+        $config = $this->getImpresoraConfig($area_trabajo);
+        $usb = $config['usb'];
+        $printer = new Printer(new WindowsPrintConnector($usb['win_name']));
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $printer->text($factura);
+        $printer->cut();
+        $printer->close();
+
+        return back()->with('success', 'Factura impresa correctamente.');
+    }
+
+    // FUNCIONES AUXILIARES
+
+    private function centerText($text, $width = 32) {
+        $text = trim($text);
+        $len = mb_strlen($text, 'UTF-8');
+        if ($len >= $width) return $text . "\n";
+        $spaces = floor(($width - $len) / 2);
+        return str_repeat(' ', $spaces) . $text . "\n";
+    }
+    private function leftText($text, $width = 32) {
+        return $text . "\n";
+    }
+    private function prettySeparator($char = '═', $width = 32) {
+        return str_repeat($char, $width) . "\n";
+    }
+    private function formatTableHeader($headers, $widths) {
+        $line = '';
+        foreach ($headers as $i => $header) {
+            $line .= str_pad($header, $widths[$i], ' ', STR_PAD_BOTH);
+        }
+        return $line . "\n";
+    }
+    private function formatTableRow($cols, $widths) {
+        $line = '';
+        foreach ($cols as $i => $col) {
+            $line .= str_pad($col, $widths[$i], ' ', STR_PAD_BOTH);
+        }
+        return $line . "\n";
+    }
+    private function getImpresoraConfig($area)
+    {
+        $config = config("impresoras.$area");
+        if (!$config) {
+            throw new \Exception("No hay configuración de impresora para el área: $area");
+        }
+        return $config;
+    }
 
 }

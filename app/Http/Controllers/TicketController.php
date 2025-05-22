@@ -172,9 +172,9 @@ class TicketController extends Controller
         // Datos alineados a AL CENTRO
         $printer->setJustification(Printer::JUSTIFY_CENTER);
         $printer->text($separadorBonito);
-        $printer->text("Gracias por su pedido.\n");
+        $printer->text("Gracias por su pedido.");
 
-        $printer->feed(4);
+        $printer->feed(2);
         $printer->cut();
         $printer->close();
 

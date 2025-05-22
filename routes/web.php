@@ -18,6 +18,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/tickets/imprimir/{cuenta}/{idUnico}', [TicketController::class, 'imprimirQZ'])->name('tickets.imprimirQZ');
 Route::get('/cuentas/exportar-pagadas', [CuentaController::class, 'exportarCuentasPagadas'])->name('cuentas.exportarPagadas');
+Route::get('cuentas/{cuenta}/imprimir-factura', [\App\Http\Controllers\CuentaController::class, 'imprimirFactura'])->name('cuentas.imprimirFactura');
 
 
 // RUTA PRINCIPAL
