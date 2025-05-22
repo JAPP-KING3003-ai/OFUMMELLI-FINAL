@@ -55,6 +55,12 @@
                             {{ __('Cuentas Pagadas') }}
                         </x-nav-link>
                     @endif
+
+                    @if (Auth::user()->role === 'Admin')
+                        <x-nav-link :href="url('/cuentas/resumen_area')" :active="request()->is('cuentas/resumen_area')">
+                            {{ __('Ventas por Área') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 

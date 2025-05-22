@@ -60,6 +60,8 @@ Route::post('/inventarios/entrada/{id}', [InventarioController::class, 'storeEnt
 Route::put('/inventarios/{id}', [InventarioController::class, 'update'])->name('inventarios.update');
 Route::get('/inventarios/{id}/salida', [InventarioController::class, 'formSalida'])->name('inventarios.salida.form');
 Route::post('/inventarios/{id}/salida', [InventarioController::class, 'registrarSalida'])->name('inventarios.salida');
+// ruta para ver las el resumen de los productos vendidos
+Route::get('/cuentas/resumen_area', [CuentaController::class, 'resumenPorArea'])->name('cuentas.resumenArea');
 
 // AGRUPADAS BAJO AUTENTICACIÓN
 Route::middleware('auth')->group(function () {
@@ -105,6 +107,8 @@ Route::middleware('auth')->group(function () {
 
     // RUTA PARA IMPRIMIR EL TICKET DESDE PANEL
     Route::get('/cuentas/{cuenta}/imprimir/{area}', [TicketController::class, 'imprimirTicket'])->name('cuentas.imprimir');
+
+    
 });
 
 // SI QUIERES LAS RUTAS DE AUTH PROPIAS DE LARAVEL, AGRÉGALAS SOLO SI LAS NECESITAS

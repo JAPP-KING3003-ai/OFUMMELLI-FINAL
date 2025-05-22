@@ -19,19 +19,20 @@ class LoginController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-            'area' => 'required|in:churuata,salon_principal,POS-58',
-        ]);
-        if (Auth::attempt($credentials)) {
-            $request->session()->put('area_trabajo', $request->area);
-            return redirect()->intended('/');
-        }
-        return back()->withErrors(['email' => 'Credenciales incorrectas.']);
+{
+    $credentials = $request->only('email', 'password');
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'area' => 'required|in:churuata,salon_principal,POS-58',
+    ]);
+    if (Auth::attempt($credentials)) {
+        $request->session()->put('area_trabajo', $request->area);
+        // Llama al método authenticated para decidir el redirect según el rol
+        return $this->authenticated($request, Auth::user());
     }
+    return back()->withErrors(['email' => 'Credenciales incorrectas.']);
+}
 
     public function logout(Request $request)
     {
@@ -39,5 +40,16 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/login');
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+        if ($user->role === 'Admin') {
+            return redirect()->route('Panel de Control');
+        } elseif ($user->role === 'Cajero') {
+            return redirect()->route('cuentas.index');
+        }
+        // Agrega más roles si lo deseas
+        return redirect('/'); // O a donde quieras enviar otros roles
     }
 }

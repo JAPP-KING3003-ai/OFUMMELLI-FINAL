@@ -18,6 +18,8 @@ use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 
 
+
+
 class CuentaController extends Controller
 {
     public function index(Request $request)
@@ -770,5 +772,121 @@ public function exportarCuentasPagadas()
         }
         return $config;
     }
+
+
+public function resumenPorArea(Request $request)
+{
+    // Control de acceso
+    if (!in_array(Auth::user()->role, ['Admin', 'Supervisor', 'Cajero'])) {
+        abort(403, 'No tienes permiso para acceder a esta sección.');
+    }
+
+    $fechaInicio = $request->input('fecha_inicio');
+    $fechaFin = $request->input('fecha_fin');
+
+    // Consulta de cuentas pagadas con filtro de fecha opcional
+    $cuentas = \App\Models\Cuenta::where('pagada', true)
+        ->when($fechaInicio, function($q) use ($fechaInicio) {
+            return $q->where('fecha_apertura', '>=', $fechaInicio);
+        })
+        ->when($fechaFin, function($q) use ($fechaFin) {
+            return $q->where('fecha_apertura', '<=', $fechaFin);
+        })
+        ->get();
+
+    // Cargar catálogo de productos (para obtener nombre y área)
+    $productos_catalogo = \App\Models\Producto::all()->keyBy('id');
+
+    // Estructura: [area_id][producto_id] => [nombre, categoria, unidad_medida, precio_venta, cantidad, subtotal]
+    $resumen = [];
+
+    foreach ($cuentas as $cuenta) {
+        $items = json_decode($cuenta->productos, true) ?? [];
+        foreach ($items as $item) {
+            $producto = $productos_catalogo[$item['producto_id']] ?? null;
+            if ($producto) {
+                $area_id = $producto->area_id;
+                if (!isset($resumen[$area_id][$producto->id])) {
+                    $resumen[$area_id][$producto->id] = [
+                        'id' => $producto->id,
+                        'nombre' => $producto->nombre,
+                        'categoria' => $producto->categoria ?? 'N/A',
+                        'unidad_medida' => $producto->unidad_medida ?? 'N/A',
+                        'precio_venta' => $producto->precio_venta ?? 0,
+                        'cantidad' => 0,
+                        'subtotal' => 0,
+                    ];
+                }
+                $resumen[$area_id][$producto->id]['cantidad'] += $item['cantidad'];
+                $resumen[$area_id][$producto->id]['subtotal'] += $item['subtotal'];
+            }
+        }
+    }
+
+    // Mapeo de área_id a nombre (ajusta según tu modelo o tabla de áreas)
+    $areas = [
+        1 => 'Carne en Vara',
+        2 => 'Cachapa',
+        3 => 'Barra',
+        4 => 'Cocina',
+    ];
+
+    // Preparar datos para los gráficos (Chart.js)
+    $jsonGraficos = [];
+    foreach ($areas as $area_id => $area_nombre) {
+        $nombres = [];
+        $cantidades = [];
+        $ventas = [];
+        if (!empty($resumen[$area_id])) {
+            foreach ($resumen[$area_id] as $prod) {
+                $nombres[] = $prod['nombre'];
+                $cantidades[] = $prod['cantidad'];
+                $ventas[] = $prod['subtotal'];
+            }
+        }
+        $jsonGraficos[$area_id] = [
+            'nombres' => $nombres,
+            'cantidades' => $cantidades,
+            'ventas' => $ventas,
+        ];
+    }
+
+    // Exportar a Excel si lo solicita el usuario
+    if ($request->has('export')) {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $row = 1;
+        foreach ($areas as $area_id => $area_nombre) {
+            $sheet->setCellValue("A{$row}", strtoupper($area_nombre));
+            $row++;
+            $sheet->setCellValue("A{$row}", 'Producto');
+            $sheet->setCellValue("B{$row}", 'Cantidad');
+            $sheet->setCellValue("C{$row}", 'Total $');
+            $row++;
+            if (!empty($resumen[$area_id])) {
+                foreach ($resumen[$area_id] as $prod) {
+                    $sheet->setCellValue("A{$row}", $prod['nombre']);
+                    $sheet->setCellValue("B{$row}", $prod['cantidad']);
+                    $sheet->setCellValue("C{$row}", $prod['subtotal']);
+                    $row++;
+                }
+            }
+            $row++; // Espacio entre áreas
+        }
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'resumen_ventas_area_' . now()->format('Ymd_His') . '.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), $filename);
+        $writer->save($tempFile);
+        return response()->download($tempFile, $filename)->deleteFileAfterSend(true);
+    }
+
+    return view('cuentas.resumen_area', [
+        'resumen' => $resumen,
+        'areas' => $areas,
+        'fechaInicio' => $fechaInicio,
+        'fechaFin' => $fechaFin,
+        'jsonGraficos' => $jsonGraficos,
+    ]);
+}
 
 }
